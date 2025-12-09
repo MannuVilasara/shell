@@ -6,9 +6,11 @@ import "../core"
 Rectangle {
     id: barRoot
     anchors.fill: parent
-    color: colors.bg // Base background
+    color: colors.bg
+    radius: 12
+    border.color: colors.muted
+    border.width: 1
 
-    // --- Properties ---
     required property Colors colors
     required property string fontFamily
     required property int fontSize
@@ -23,7 +25,7 @@ Rectangle {
 
     component VerticalDivider: Rectangle {
         Layout.preferredWidth: 1
-        Layout.preferredHeight: 12
+        Layout.preferredHeight: 14
         Layout.alignment: Qt.AlignVCenter
         color: colors.muted
         opacity: 0.5
@@ -33,13 +35,11 @@ Rectangle {
         default property alias content: innerLayout.data
         Layout.preferredHeight: 26
         Layout.alignment: Qt.AlignVCenter
-        implicitWidth: innerLayout.implicitWidth + 24
+        implicitWidth: innerLayout.implicitWidth + 20
         radius: height / 2
-
-        color: colors.bg
+        color: "transparent"
         border.color: colors.muted
         border.width: 1
-
         RowLayout {
             id: innerLayout
             anchors.centerIn: parent
@@ -47,19 +47,18 @@ Rectangle {
         }
     }
 
-    // --- Main Layout ---
     RowLayout {
         anchors.fill: parent
         anchors.leftMargin: 12
         anchors.rightMargin: 12
         spacing: 8
 
+        // Logo
         Rectangle {
-            Layout.preferredWidth: 28
-            Layout.preferredHeight: 28
+            Layout.preferredWidth: 26
+            Layout.preferredHeight: 26
             radius: height / 2
             color: "transparent"
-
             Image {
                 anchors.centerIn: parent
                 width: 18
@@ -72,73 +71,77 @@ Rectangle {
 
         VerticalDivider {}
 
-        // --- WORKSPACES (Animated Carousel) ---
+        // --- WORKSPACE CAROUSEL ---
         Rectangle {
             id: wsContainer
-            // 1. Container Size
-            // 150px fits: [Semi-Circle] + [Active Pill] + [Circles] + [Semi-Circle]
             Layout.preferredWidth: 150
-            Layout.preferredHeight: 28
+            Layout.preferredHeight: 26
 
-            color: Qt.darker(colors.bg, 1.1)
+            color: Qt.rgba(0, 0, 0, 0.2)
             radius: height / 2
-
-            // Clip is essential for the semi-circles to appear "cut off"
             clip: true
+
+            // 1. GLOBAL SCROLL HANDLER (The Fix)
+            // This sits underneath the items but captures the wheel events for the whole container
+            MouseArea {
+                anchors.fill: parent
+                // Allow clicks to pass through to the buttons below
+                propagateComposedEvents: true
+                // Don't "eat" the click events, just the wheel events
+                onClicked: mouse.accepted = false
+                onPressed: mouse.accepted = false
+                onReleased: mouse.accepted = false
+
+                onWheel: wheel => {
+                    // Standard scrolling logic
+                    if (wheel.angleDelta.y > 0) {
+                        Hyprland.dispatch("workspace -1");
+                    } else {
+                        Hyprland.dispatch("workspace +1");
+                    }
+                }
+            }
 
             ListView {
                 id: wsList
                 anchors.fill: parent
-
                 orientation: ListView.Horizontal
-                spacing: 6
+                spacing: 4
 
-                // 2. Sliding Logic (The "Back and Forth" Animation)
-                // This aligns the Active Workspace to a specific "Sweet Spot" (pixel 12).
-                // When you switch, the list physically slides left/right to put the new Active item at pixel 12.
+                // 2. Disable internal scrolling so it doesn't fight Hyprland
+                interactive: false
+
                 highlightRangeMode: ListView.StrictlyEnforceRange
                 preferredHighlightBegin: 12
                 preferredHighlightEnd: 138
-
-                // Slower duration = Smoother slide effect
                 highlightMoveDuration: 300
-                highlightMoveVelocity: -1 // -1 means "ignore velocity, strictly use duration"
+                highlightMoveVelocity: -1
 
-                // 3. Data Source
                 currentIndex: (Hyprland.focusedWorkspace.id - 1)
                 model: 20
 
                 delegate: Rectangle {
-                    id: wsDelegate
                     property int wsIndex: index + 1
                     property var workspace: Hyprland.workspaces.values.find(ws => ws.id === wsIndex) ?? null
                     property bool isActive: wsList.currentIndex === index
                     property bool hasWindows: workspace !== null
 
-                    height: 18
+                    height: 16
                     anchors.verticalCenter: parent.verticalCenter
-
-                    // 4. Width Animation (The "Jelly" Effect)
-                    // Active = 36px, Inactive = 18px
-                    width: isActive ? 36 : 18
+                    width: isActive ? 32 : 16
                     radius: height / 2
 
-                    // Colors
                     color: (isActive || hasWindows) ? colors.purple : "transparent"
                     border.color: (!isActive && !hasWindows) ? colors.muted : "transparent"
                     border.width: (!isActive && !hasWindows) ? 2 : 0
 
-                    // 5. Enhanced Animations
                     Behavior on width {
                         NumberAnimation {
                             duration: 300
-                            // Easing.OutBack creates a slight "overshoot" or bounce.
-                            // This makes the pill feel like it "springs" open.
                             easing.type: Easing.OutBack
                             easing.overshoot: 1.2
                         }
                     }
-
                     Behavior on color {
                         ColorAnimation {
                             duration: 200
@@ -148,14 +151,8 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
+                        // Only handle clicks here. Scroll is handled by the parent.
                         onClicked: Hyprland.dispatch("workspace " + parent.wsIndex)
-                        onWheel: {
-                            if (wheel.angleDelta.y > 0) {
-                                Hyprland.dispatch("workspace -1");
-                            } else {
-                                Hyprland.dispatch("workspace +1");
-                            }
-                        }
                         cursorShape: Qt.PointingHandCursor
                     }
                 }
@@ -167,32 +164,27 @@ Rectangle {
         Text {
             text: currentLayout
             color: colors.fg
-            font.pixelSize: fontSize
+            font.pixelSize: fontSize - 2
             font.family: fontFamily
             font.bold: true
             opacity: 0.7
-            Layout.leftMargin: 4
         }
 
-        // =====================================
-        // SPACER
-        // =====================================
         Item {
             Layout.fillWidth: true
         }
 
-        // =====================================
-        // CENTER SECTION: Active Window
-        // =====================================
-
+        // Active Window
         InfoPill {
             visible: activeWindow !== ""
             Layout.maximumWidth: 400
+            border.width: 0
+            color: Qt.rgba(0, 0, 0, 0.2)
 
             Text {
                 text: activeWindow
                 color: colors.fg
-                font.pixelSize: fontSize
+                font.pixelSize: fontSize - 1
                 font.family: fontFamily
                 font.bold: true
                 elide: Text.ElideMiddle
@@ -200,58 +192,84 @@ Rectangle {
             }
         }
 
-        // =====================================
-        // SPACER
-        // =====================================
         Item {
             Layout.fillWidth: true
         }
 
-        // =====================================
-        // RIGHT SECTION: System Stats
-        // =====================================
+        // Stats
+        InfoPill {
+            Row {
+                spacing: 6
+                Text {
+                    text: "CPU"
+                    color: colors.red
+                    font.bold: true
+                    font.pixelSize: fontSize - 2
+                    anchors.baseline: tCpu.baseline
+                }
+                Text {
+                    id: tCpu
+                    text: cpuUsage + "%"
+                    color: colors.fg
+                    font.pixelSize: fontSize - 1
+                    font.family: fontFamily
+                }
+            }
+            VerticalDivider {
+                Layout.preferredHeight: 10
+            }
+            Row {
+                spacing: 6
+                Text {
+                    text: "RAM"
+                    color: colors.blue
+                    font.bold: true
+                    font.pixelSize: fontSize - 2
+                    anchors.baseline: tRam.baseline
+                }
+                Text {
+                    id: tRam
+                    text: memUsage + "%"
+                    color: colors.fg
+                    font.pixelSize: fontSize - 1
+                    font.family: fontFamily
+                }
+            }
+        }
 
-        // InfoPill {
-        //     // spacing: 12
-        //     Row {
-        //         spacing: 4
-        //         Text { text: "CPU"; color: colors.yellow; font.bold: true; font.pixelSize: fontSize - 1 }
-        //         Text { text: cpuUsage + "%"; color: colors.fg; font.pixelSize: fontSize; font.family: fontFamily }
-        //     }
-        //     VerticalDivider { Layout.preferredHeight: 10 }
-        //     Row {
-        //         spacing: 4
-        //         Text { text: "RAM"; color: colors.cyan; font.bold: true; font.pixelSize: fontSize - 1 }
-        //         Text { text: memUsage + "%"; color: colors.fg; font.pixelSize: fontSize; font.family: fontFamily }
-        //     }
-        // }
-        //
-        // InfoPill {
-        //     Row {
-        //         spacing: 6
-        //         Text { text: "VOL"; color: colors.purple; font.bold: true; font.pixelSize: fontSize - 1 }
-        //         Text {
-        //             text: volumeLevel + "%"
-        //             color: colors.fg
-        //             font.pixelSize: fontSize
-        //             font.family: fontFamily
-        //             font.bold: true
-        //         }
-        //     }
-        // }
+        InfoPill {
+            Row {
+                spacing: 6
+                Text {
+                    text: "VOL"
+                    color: colors.yellow
+                    font.bold: true
+                    font.pixelSize: fontSize - 2
+                    anchors.baseline: tVol.baseline
+                }
+                Text {
+                    id: tVol
+                    text: volumeLevel + "%"
+                    color: colors.fg
+                    font.pixelSize: fontSize - 1
+                    font.family: fontFamily
+                    font.bold: true
+                }
+            }
+        }
 
+        // Clock
         Rectangle {
             Layout.preferredHeight: 26
-            Layout.preferredWidth: clockText.implicitWidth + 26
+            Layout.preferredWidth: clockText.implicitWidth + 24
             radius: height / 2
             color: colors.purple
-
             Text {
                 id: clockText
                 anchors.centerIn: parent
                 text: time
                 color: colors.bg
-                font.pixelSize: fontSize
+                font.pixelSize: fontSize - 1
                 font.family: fontFamily
                 font.bold: true
             }

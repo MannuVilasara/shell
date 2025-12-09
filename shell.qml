@@ -13,10 +13,10 @@ import "clipboard"
 ShellRoot {
     id: root
 
+    // --- Services ---
     Colors {
         id: colors
     }
-
     CpuService {
         id: cpuService
     }
@@ -42,11 +42,11 @@ ShellRoot {
         id: layoutService
     }
 
-    // Font
+    // --- Config ---
     property string fontFamily: "JetBrainsMono Nerd Font"
     property int fontSize: 14
 
-    // System info properties
+    // --- System Info Props ---
     property string kernelVersion: osService.version
     property int cpuUsage: cpuService.usage
     property int memUsage: memService.usage
@@ -55,25 +55,28 @@ ShellRoot {
     property string activeWindow: activeWindowService.title
     property string currentLayout: layoutService.layout
 
+    // --- Background (Wallpaper) ---
     Background {}
 
+    // --- Launcher & Clipboard ---
     AppLauncher {
         id: launcher
         visible: false
         colors: colors
     }
 
+    Clipboard {
+        id: clipboard
+    }
+
+    // --- IPC Handlers ---
     IpcHandler {
         target: "launcher"
         function toggle() {
             launcher.visible = !launcher.visible;
         }
     }
-    Clipboard {
-        id: clipboard
-    }
 
-    // 1. Toggle Handler (For your keybind: Super+V)
     IpcHandler {
         target: "clipboard"
         function toggle() {
@@ -81,17 +84,14 @@ ShellRoot {
         }
     }
 
-    // 2. UPDATE Handler (For the script you found)
-    // Listens for: qs -c mannu ipc call cliphistService update
     IpcHandler {
         target: "cliphistService"
-
         function update() {
-            // This runs the refresh() function we just added to Clipboard.qml
             clipboard.refresh();
         }
     }
 
+    // --- THE BAR ---
     Variants {
         model: Quickshell.screens
 
@@ -99,23 +99,29 @@ ShellRoot {
             property var modelData
             screen: modelData
 
+            // Anchor to edges
             anchors {
                 top: true
                 left: true
                 right: true
             }
 
-            implicitHeight: 30
-            color: colors.bg
+            // Height & Margin Tweak
+            // 1. Increased height slightly so it breathes (30 -> 34)
+            implicitHeight: 34
 
+            // 2. Added the "0.5 or sum" vertical gap (5px top margin)
             margins {
-                top: 0
+                top: 5
                 bottom: 0
-                left: 0
-                right: 0
+                left: 8  // Matching side margins for consistency
+                right: 8
             }
 
+            color: "transparent" // Let the Bar.qml handle the background (or transparent)
+
             Bar {
+                // Pass all required props
                 colors: colors
                 fontFamily: root.fontFamily
                 fontSize: root.fontSize
