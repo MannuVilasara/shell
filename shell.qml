@@ -9,6 +9,8 @@ import "background"
 import "services"
 import "launcher"
 import "clipboard"
+import "notifications"
+import "panels"
 
 ShellRoot {
     id: root
@@ -58,6 +60,18 @@ ShellRoot {
     property string activeWindow: activeWindowService.title
     property string currentLayout: layoutService.layout
 
+    NotificationManager {
+        id: notifManager
+    }
+
+    NotificationToast {
+        manager: notifManager
+    }
+
+    SidePanel {
+        globalState: appState
+        notifManager: notifManager
+    }
     // --- Background (Wallpaper) ---
     Background {}
 
@@ -96,6 +110,13 @@ ShellRoot {
         target: "cliphistService"
         function update() {
             clipboard.refresh();
+        }
+    }
+    // Side Panel Toggle
+    IpcHandler {
+        target: "sidePanel"
+        function toggle() {
+            appState.toggleSidePanel();
         }
     }
 

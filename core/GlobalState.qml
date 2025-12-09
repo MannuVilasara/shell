@@ -6,7 +6,7 @@ QtObject {
     // --- State Properties ---
     property bool launcherOpen: false
     property bool clipboardOpen: false
-
+    property bool sidePanelOpen: false
     // --- Actions ---
     function toggleLauncher() {
         if (launcherOpen) {
@@ -27,8 +27,19 @@ QtObject {
         }
     }
 
+    function toggleSidePanel() {
+        if (sidePanelOpen) {
+            sidePanelOpen = false;
+        } else {
+            closeAll();
+            sidePanelOpen = true;
+            
+        }
+    }
+
     function closeAll() {
         launcherOpen = false;
         clipboardOpen = false;
+        sidePanelOpen = false;
     }
 }
