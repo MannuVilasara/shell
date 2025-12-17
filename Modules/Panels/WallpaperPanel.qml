@@ -437,7 +437,8 @@ PanelWindow {
                     Keys.onReturnPressed: {
                         if (currentIndex >= 0 && currentIndex < filteredWallpapers.length) {
                             var path = filteredWallpapers[currentIndex];
-                            WallpaperService.changeWallpaper(path, undefined);
+                            var screenName = Quickshell.screens[currentScreenIndex] ? Quickshell.screens[currentScreenIndex].name : undefined;
+                            WallpaperService.changeWallpaper(path, screenName);
                             globalState.wallpaperPanelOpen = false;
                         }
                     }
@@ -623,7 +624,8 @@ PanelWindow {
                                 
                                 onClicked: {
                                     wallpaperGrid.currentIndex = index;
-                                    WallpaperService.changeWallpaper(wallpaperPath, undefined);
+                                    var screenName = Quickshell.screens[currentScreenIndex] ? Quickshell.screens[currentScreenIndex].name : undefined;
+                                    WallpaperService.changeWallpaper(wallpaperPath, screenName);
                                     globalState.wallpaperPanelOpen = false;
                                 }
                             }

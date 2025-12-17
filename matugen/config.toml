@@ -1,0 +1,6 @@
+[config]
+reload_apps = false
+
+[templates.quickshell]
+input_path = "/etc/xdg/quickshell/mannu/matugen/templates/colors.qml"
+output_path = "/etc/xdg/quickshell/mannu/Core/MaterialColors.qml"

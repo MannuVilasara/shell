@@ -1,13 +1,24 @@
 import QtQuick
 
 Item {
-    readonly property color bg: "#1a1b26"
-    readonly property color fg: "#a9b1d6"
-    readonly property color muted: "#444b6a"
-    readonly property color cyan: "#0db9d7"
-    readonly property color purple: "#ad8ee6"
-    readonly property color red: "#f7768e"
-    readonly property color yellow: "#e0af68"
-    readonly property color blue: "#7aa2f7"
-    readonly property color green: "#9ece6a"
+    id: root
+    
+    // Load dynamic colors from matugen-generated file
+    MaterialColors { id: mat }
+    
+    // Main colors - mapped from Material Design colors
+    readonly property color bg: mat.background
+    readonly property color fg: mat.backgroundOn
+    readonly property color muted: mat.outline
+    readonly property color purple: mat.primary
+    readonly property color blue: mat.secondary
+    readonly property color green: mat.tertiary
+    readonly property color red: mat.error
+    readonly property color yellow: mat.tertiaryContainer
+    readonly property color cyan: mat.secondaryContainer
+    
+    // Surface colors
+    readonly property color surface: mat.surface
+    readonly property color surfaceVariant: mat.surfaceVariant
+    readonly property color border: mat.outlineVariant
 }

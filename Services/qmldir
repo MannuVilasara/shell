@@ -1,0 +1,16 @@
+module qs.Services
+ActiveWindowService 1.0 ActiveWindowService.qml
+singleton BluetoothService 1.0 BluetoothService.qml
+singleton BrightnessService 1.0 BrightnessService.qml
+singleton Config 1.0 Config.qml
+Context 1.0 Context.qml
+CpuService 1.0 CpuService.qml
+DiskService 1.0 DiskService.qml
+LayoutService 1.0 LayoutService.qml
+MemService 1.0 MemService.qml
+singleton NetworkService 1.0 NetworkService.qml
+OsService 1.0 OsService.qml
+singleton ThemeService 1.0 ThemeService.qml
+TimeService 1.0 TimeService.qml
+singleton VolumeService 1.0 VolumeService.qml
+singleton WallpaperService 1.0 WallpaperService.qml

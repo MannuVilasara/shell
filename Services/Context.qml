@@ -15,7 +15,8 @@ Item {
     property alias activeWindow: activeWindowService
     property alias layout: layoutService
     property alias appState: appStateService
-
+    property var theme: ThemeService
+    
     Colors { id: colorsService }
     CpuService { id: cpuService }
     OsService { id: osService }
