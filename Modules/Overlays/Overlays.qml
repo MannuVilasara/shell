@@ -77,6 +77,9 @@ Item {
             if (sidePanel.forcedOpen) sidePanel.hide();
             else sidePanel.show();
         }
+        function lock() { sidePanel.hoverLocked = true; }
+        function unlock() { sidePanel.hoverLocked = false; }
+        function toggleLock() { sidePanel.hoverLocked = !sidePanel.hoverLocked; }
     }
     IpcHandler {
         target: "wallpaperpanel"

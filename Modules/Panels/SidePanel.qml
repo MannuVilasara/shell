@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import qs.Core
 import qs.Widgets
 import qs.Modules.Notifications
+import qs.Services
 import "Views" as Views
 
 PanelWindow {
@@ -59,15 +60,15 @@ PanelWindow {
             },
             // Static Peek Strips
             Region {
-                x: root.width - 20
+                x: root.width - root.peekWidth
                 y: controlBox.y
-                width: 20
+                width: root.peekWidth
                 height: controlBox.height
             },
             Region {
-                x: root.width - 20
+                x: root.width - root.peekWidth
                 y: notifBox.y
-                width: 20
+                width: root.peekWidth
                 height: notifBox.height
             },
             // Gap Bridge (Panel)
@@ -79,9 +80,9 @@ PanelWindow {
             },
             // Gap Bridge (Peek)
             Region {
-                x: root.width - 20
+                x: root.width - root.peekWidth
                 y: controlBox.y + controlBox.height
-                width: 20
+                width: root.peekWidth
                 height: 12
             }
         ]
@@ -152,13 +153,14 @@ PanelWindow {
 
     property bool toastHovered: false
     
-    // ...
-
+    // --- Locking Mechanism ---
+    property bool hoverLocked: Config.disableHover
+    
     Timer {
         id: controlTimer
         interval: 100
         repeat: false
-        running: !root.controlHovered && !menuLoader.active && !root.forcedOpen && !root.notifHovered && !root.toastHovered
+        running: !root.controlHovered && !menuLoader.active && !root.forcedOpen && !root.notifHovered && !root.toastHovered && !root.hoverLocked
         onTriggered: root.controlOpen = false
     }
     
@@ -166,21 +168,21 @@ PanelWindow {
         id: notifTimer
         interval: 100
         repeat: false
-        running: !root.notifHovered && !root.forcedOpen && !root.controlHovered && !root.toastHovered
+        running: !root.notifHovered && !root.forcedOpen && !root.controlHovered && !root.toastHovered && !root.hoverLocked
         onTriggered: root.notifOpen = false
     }
     
 
     
     onControlHoveredChanged: {
-        if (controlHovered) {
+        if (controlHovered && !hoverLocked) {
             controlTimer.stop()
             controlOpen = true
         }
     }
     
     onNotifHoveredChanged: {
-        if (notifHovered) {
+        if (notifHovered && !hoverLocked) {
             notifTimer.stop()
             notifOpen = true
         }
@@ -199,7 +201,10 @@ PanelWindow {
         // Dynamic height based on content
         height: contentCol.height + 32 // 16px top + 16px bottom padding
         
-        y: 60 // Top margin to clear Top Bar
+        // Anchor to bottom
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 20
+        
         x: root.getX(root.controlOpen || menuLoader.active || root.forcedOpen)
         
         radius: 16
@@ -342,13 +347,12 @@ PanelWindow {
         id: notifBox
         width: root.boxWidth
         
-        // Dynamic Y position: follows controlBox directly
-        property int baseY: controlBox.y + controlBox.height + 12
-        y: baseY
+        // Position ABOVE ControlBox
+        anchors.bottom: controlBox.top
+        anchors.bottomMargin: 12
         
-        // Height dynamics: Fill available space to bottom, minus margin
-        // If content is smaller, shrink to content.
-        property int maxAvailableHeight: root.height - baseY - 20 // 20px bottom margin
+        // Height dynamics: Fill available space to TOP, minus margin
+        property int maxAvailableHeight: root.height - controlBox.height - 40 - 20 // 40 top, 20 spacing
         height: Math.min(Math.max(100, maxAvailableHeight), notifContent.implicitHeight + 32)
         
         x: root.getX(root.notifOpen || root.forcedOpen)
@@ -390,9 +394,9 @@ PanelWindow {
 
     Rectangle {
         color: "transparent"
-        x: parent.width - 20
+        x: parent.width - root.peekWidth
         y: controlBox.y
-        width: 20
+        width: root.peekWidth
         height: controlBox.height
         HoverHandler { id: controlPeekHandler }
     }
@@ -400,9 +404,9 @@ PanelWindow {
     // Notif Peek
     Rectangle {
         color: "transparent"
-        x: parent.width - 20
+        x: parent.width - root.peekWidth
         y: notifBox.y
-        width: 20
+        width: root.peekWidth
         height: notifBox.height
         HoverHandler { 
             // We can reuse notifHandler? No, separate logic.
