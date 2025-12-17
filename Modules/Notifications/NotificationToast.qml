@@ -27,12 +27,11 @@ PanelWindow {
     
 
     anchors {
-        bottom: true
+        top: true
         right: true
     }
     
-
-    WlrLayershell.margins.bottom: 20
+    WlrLayershell.margins.top: 60
     WlrLayershell.margins.right: 20
     
     WlrLayershell.layer: WlrLayer.Overlay

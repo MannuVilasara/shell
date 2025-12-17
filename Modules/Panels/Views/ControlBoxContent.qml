@@ -107,6 +107,7 @@ ColumnLayout {
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
+                cursorShape: Qt.PointingHandCursor
                 onClicked: (mouse) => {
                     if (mouse.button === Qt.RightButton) {
                         root.requestWifiMenu()
@@ -131,6 +132,7 @@ ColumnLayout {
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
+                cursorShape: Qt.PointingHandCursor
                 onClicked: (mouse) => {
                     if (mouse.button === Qt.RightButton) {
                         root.requestBluetoothMenu()

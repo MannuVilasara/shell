@@ -37,7 +37,10 @@ Control {
                     color: theme.text
                 }
                 
-                HoverHandler { id: backBtn }
+                HoverHandler { 
+                    id: backBtn 
+                    cursorShape: Qt.PointingHandCursor
+                }
                 TapHandler { onTapped: root.backRequested() }
             }
             
@@ -72,6 +75,7 @@ Control {
                 TapHandler {
                     onTapped: NetworkService.toggleWifi()
                 }
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
             }
         }
 
@@ -164,7 +168,10 @@ Control {
                 radius: 10
                 color: hoverHandler.hovered ? theme.tile : "transparent"
                 
-                HoverHandler { id: hoverHandler }
+                HoverHandler { 
+                    id: hoverHandler 
+                    cursorShape: Qt.PointingHandCursor
+                }
                 TapHandler {
                     onTapped: {
                         // TODO: Password Input

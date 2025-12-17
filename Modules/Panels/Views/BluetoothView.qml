@@ -37,7 +37,10 @@ Control {
                     color: theme.text
                 }
                 
-                HoverHandler { id: backBtn }
+                HoverHandler { 
+                    id: backBtn 
+                    cursorShape: Qt.PointingHandCursor
+                }
                 TapHandler { onTapped: root.backRequested() }
             }
             
@@ -71,6 +74,7 @@ Control {
                 TapHandler {
                     onTapped: BluetoothService.toggleBluetooth()
                 }
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
             }
         }
         
@@ -96,7 +100,10 @@ Control {
                 radius: 12
                 color: hoverHandler.hovered ? Qt.rgba(theme.tile.r, theme.tile.g, theme.tile.b, 0.5) : "transparent"
                 
-                HoverHandler { id: hoverHandler }
+                HoverHandler { 
+                    id: hoverHandler 
+                    cursorShape: Qt.PointingHandCursor
+                }
                 TapHandler {
                     onTapped: {
                         if (modelData.connected) modelData.disconnect()
