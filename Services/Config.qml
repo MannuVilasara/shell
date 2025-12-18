@@ -26,6 +26,11 @@ Singleton {
         path: root.configPath
         watchChanges: true
         
+        onFileChanged: {
+            console.log("Config changed, reloading...");
+            configFile.reload();
+        }
+        
         onLoaded: {
             try {
                 var json = JSON.parse(configFile.text())
