@@ -13,7 +13,7 @@ PanelWindow {
     property bool isOpen: false
     required property var globalState
     required property Colors colors
-    property int currentIndex: 2
+    property int currentIndex: 0
 
     function runCommand(cmd) {
         if (cmd.includes("$USER"))
@@ -30,10 +30,12 @@ PanelWindow {
     WlrLayershell.namespace: "matte-power-menu"
     WlrLayershell.exclusiveZone: -1
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    
     onVisibleChanged: {
-        if (visible)
+        if (visible) {
             eventHandler.forceActiveFocus();
-
+            currentIndex = 0;
+        }
     }
 
     anchors {
@@ -49,10 +51,10 @@ PanelWindow {
         anchors.fill: parent
         focus: true
         Keys.onEscapePressed: globalState.powerMenuOpen = false
-        Keys.onLeftPressed: {
+        Keys.onUpPressed: {
             currentIndex = (currentIndex - 1 + buttonsModel.count) % buttonsModel.count;
         }
-        Keys.onRightPressed: {
+        Keys.onDownPressed: {
             currentIndex = (currentIndex + 1) % buttonsModel.count;
         }
         Keys.onReturnPressed: {
@@ -76,9 +78,9 @@ PanelWindow {
         }
 
         ListElement {
-            name: "Shutdown"
-            icon: "󰐥"
-            command: "systemctl poweroff"
+            name: "Reload"
+            icon: "󰜉"
+            command: "systemctl restart display-manager"
         }
 
         ListElement {
@@ -88,17 +90,22 @@ PanelWindow {
         }
 
         ListElement {
-            name: "Logout"
+            name: "Power Off"
+            icon: "󰐥"
+            command: "systemctl poweroff"
+        }
+
+        ListElement {
+            name: "Log Out"
             icon: "󰍃"
             command: "loginctl terminate-user $USER"
         }
-
     }
 
     Rectangle {
         anchors.fill: parent
         color: "#000000"
-        opacity: isOpen ? 0.6 : 0
+        opacity: isOpen ? 0.35 : 0
 
         MouseArea {
             anchors.fill: parent
@@ -107,114 +114,180 @@ PanelWindow {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 200
+                duration: 250
+                easing.type: Easing.InOutQuad
             }
-
         }
-
     }
 
-    Row {
+    Rectangle {
+        id: menuPanel
         anchors.centerIn: parent
-        spacing: 30
+        width: 320
+        height: Math.min(buttonsModel.count * 62 + 24, 420)
+        radius: 18
+        antialiasing: true
+        color: Qt.rgba(root.colors.bg.r, root.colors.bg.g, root.colors.bg.b, 0.95)
+        opacity: isOpen ? 1 : 0
 
-        Repeater {
-            model: buttonsModel
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 280
+                easing.type: Easing.OutQuad
+            }
+        }
 
-            delegate: Rectangle {
-                id: delegateRoot
+        layer.enabled: true
+        layer.effect: DropShadow {
+            transparentBorder: true
+            horizontalOffset: 0
+            verticalOffset: 8
+            radius: 24
+            samples: 16
+            color: Qt.rgba(0, 0, 0, 0.5)
+        }
 
-                required property string name
-                required property string icon
-                required property string command
-                required property int index
-                property bool isSelected: root.currentIndex === index
-                property bool isHovered: mouseArea.containsMouse
+        Column {
+            anchors {
+                fill: parent
+                margins: 12
+            }
+            spacing: 6
 
-                width: isSelected || isHovered ? 140 : 100
-                height: 140
-                radius: 24
-                z: isSelected || isHovered ? 10 : 1
-                color: (isSelected || isHovered) ? root.colors.accent : root.colors.surface
-                border.width: 1
-                border.color: (isSelected || isHovered) ? root.colors.accent : root.colors.border
+            ListView {
+                id: menuList
+                width: parent.width
+                height: parent.height
+                model: buttonsModel
+                currentIndex: root.currentIndex
+                interactive: false
 
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    spacing: 8
+                delegate: Item {
+                    width: menuList.width
+                    height: 56
 
-                    Text {
-                        text: delegateRoot.icon
-                        font.pixelSize: 42
-                        font.family: "Symbols Nerd Font"
-                        color: (delegateRoot.isSelected || delegateRoot.isHovered) ? root.colors.bg : root.colors.text
-                        Layout.alignment: Qt.AlignHCenter
-                    }
+                    required property string name
+                    required property string icon
+                    required property string command
+                    required property int index
 
-                    Text {
-                        text: delegateRoot.name
-                        font.pixelSize: 14
-                        font.weight: Font.Bold
-                        color: (delegateRoot.isSelected || delegateRoot.isHovered) ? root.colors.bg : root.colors.text
-                        opacity: (delegateRoot.isSelected || delegateRoot.isHovered) ? 1 : 0
-                        visible: opacity > 0
-                        Layout.alignment: Qt.AlignHCenter
+                    property bool isSelected: root.currentIndex === index
+                    property bool isHovered: mouseArea.containsMouse
 
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 200
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 12
+                        antialiasing: true
+                        color: {
+                            if (isSelected) {
+                                return root.colors.accent
+                            } else if (isHovered) {
+                                return Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.6)
                             }
-
+                            return "transparent"
                         }
 
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: 180
+                                easing.type: Easing.OutQuad
+                            }
+                        }
+
+                        Row {
+                            anchors {
+                                fill: parent
+                                leftMargin: 16
+                                rightMargin: 16
+                            }
+                            spacing: 14
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: icon
+                                font.pixelSize: 24
+                                font.family: "Symbols Nerd Font Mono"
+                                color: isSelected ? root.colors.bg : root.colors.text
+                                antialiasing: true
+                                smooth: true
+                                renderType: Text.QtRendering
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 180
+                                        easing.type: Easing.OutQuad
+                                    }
+                                }
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: name
+                                font.pixelSize: 14
+                                font.weight: Font.Medium
+                                font.family: "monospace"
+                                color: isSelected ? root.colors.bg : root.colors.text
+                                antialiasing: true
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 180
+                                        easing.type: Easing.OutQuad
+                                    }
+                                }
+                            }
+
+                            Item { width: 1; height: 1 }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: ["L", "S", "D", "R", "P", "X"][index]
+                                font.pixelSize: 12
+                                font.weight: Font.Bold
+                                color: isSelected ? root.colors.bg : Qt.rgba(root.colors.text.r, root.colors.text.g, root.colors.text.b, 0.5)
+                                antialiasing: true
+
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: 180
+                                        easing.type: Easing.OutQuad
+                                    }
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: mouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: root.currentIndex = index
+                            onClicked: root.runCommand(command)
+                        }
                     }
 
-                }
+                    transform: Scale {
+                        origin.x: width / 2
+                        origin.y: height / 2
+                        xScale: isSelected ? 1.02 : 1.0
+                        yScale: isSelected ? 1.02 : 1.0
 
-                MouseArea {
-                    id: mouseArea
+                        Behavior on xScale {
+                            NumberAnimation {
+                                duration: 200
+                                easing.type: Easing.OutExpo
+                            }
+                        }
 
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onEntered: root.currentIndex = index
-                    onClicked: root.runCommand(delegateRoot.command)
-                }
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: 250
-                        easing.type: Easing.OutExpo
+                        Behavior on yScale {
+                            NumberAnimation {
+                                duration: 200
+                                easing.type: Easing.OutExpo
+                            }
+                        }
                     }
-
                 }
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 200
-                    }
-
-                }
-
-                Behavior on border.color {
-                    ColorAnimation {
-                        duration: 200
-                    }
-
-                }
-
             }
-
         }
-
-        move: Transition {
-            NumberAnimation {
-                properties: "x"
-                duration: 250
-                easing.type: Easing.OutExpo
-            }
-
-        }
-
     }
-
 }

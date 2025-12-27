@@ -67,22 +67,36 @@ PanelWindow {
         opacity: root.showing ? 1 : 0
         layer.enabled: true
 
+        Behavior on x {
+            NumberAnimation {
+                duration: 350
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.InOutQuad
+            }
+        }
+
         Rectangle {
             property alias hovered: toastHandler.hovered
 
             anchors.fill: parent
             radius: 16
             color: Qt.rgba(theme.bg.r, theme.bg.g, theme.bg.b, 0.95)
-            border.width: 1
-            border.color: root.notifUrgency === 2 ? theme.urgent : theme.border
+            border.width: 2
+            border.color: root.notifUrgency === 2 ? theme.urgent : theme.accent
 
             Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 anchors.leftMargin: 16
                 anchors.rightMargin: 16
-                height: 2
-                radius: 1
+                height: 3
+                radius: 1.5
                 color: root.notifUrgency === 2 ? theme.urgent : theme.accent
                 width: parent.width - 32
                 onVisibleChanged: {
@@ -129,11 +143,13 @@ PanelWindow {
                 spacing: 16
 
                 Rectangle {
-                    Layout.preferredWidth: 48
-                    Layout.preferredHeight: 48
-                    Layout.alignment: Qt.AlignTop
-                    radius: 12
+                    Layout.preferredWidth: 56
+                    Layout.preferredHeight: 56
+                    Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
+                    radius: 13
                     color: theme.surface
+                    border.width: 1
+                    border.color: Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.2)
 
                     Image {
                         id: imgDisplay
@@ -162,9 +178,9 @@ PanelWindow {
                         layer.effect: OpacityMask {
 
                             maskSource: Rectangle {
-                                width: 48
-                                height: 48
-                                radius: 12
+                                width: 56
+                                height: 56
+                                radius: 13
                             }
 
                         }
@@ -175,8 +191,9 @@ PanelWindow {
                         anchors.centerIn: parent
                         text: "󰂚"
                         font.family: "Symbols Nerd Font"
-                        font.pixelSize: 24
-                        color: theme.subtext
+                        font.pixelSize: 28
+                        color: theme.accent
+                        opacity: 0.7
                         visible: !imgDisplay.visible
                     }
 
@@ -184,13 +201,14 @@ PanelWindow {
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 4
+                    spacing: 6
 
                     Text {
                         text: root.notifTitle
                         Layout.fillWidth: true
                         font.bold: true
-                        font.pixelSize: 14
+                        font.pixelSize: 15
+                        font.weight: Font.SemiBold
                         color: theme.text
                         elide: Text.ElideRight
                     }
@@ -198,14 +216,12 @@ PanelWindow {
                     Text {
                         text: root.notifBody
                         Layout.fillWidth: true
-                        Layout.maximumHeight: 60 // Limit height
+                        Layout.maximumHeight: 60
                         font.pixelSize: 13
                         color: theme.subtext
                         wrapMode: Text.Wrap
                         elide: Text.ElideRight
-                        maximumLineCount: 3
                     }
-
                 }
 
                 Rectangle {

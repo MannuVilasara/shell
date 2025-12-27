@@ -14,7 +14,7 @@ Variants {
         property var modelData
 
         screen: modelData
-        implicitHeight: 34
+        implicitHeight: 48
         color: "transparent"
 
         anchors {
@@ -24,10 +24,10 @@ Variants {
         }
 
         margins {
-            top: 5
+            top: 0
             bottom: 0
-            left: 8
-            right: 8
+            left: 0
+            right: 0
         }
 
         Bar {
