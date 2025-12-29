@@ -30,7 +30,7 @@ Item {
         globalState: root.context.appState
         notifManager: notifManager
         colors: root.context.colors
-        toastHovered: toast.hovered
+        toastHovered: toast.hovered || false
         volumeService: root.context.volume
         bluetoothService: root.context.bluetooth
     }
@@ -149,7 +149,7 @@ Item {
     }
 
     IpcHandler {
-        function set(path) {
+        function set(path: string) {
             WallpaperService.changeWallpaper(path, undefined);
         }
 

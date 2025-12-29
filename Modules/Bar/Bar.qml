@@ -336,7 +336,7 @@ Rectangle {
 
         // System Stats
         InfoPill {
-            Row {
+             RowLayout {
                 spacing: 6
 
                 Text {
@@ -344,16 +344,16 @@ Rectangle {
                     color: colors.blue
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: fontSize + 2
-                    anchors.baseline: tRam.baseline
+                    Layout.alignment: Qt.AlignBaseline
                 }
 
                 Text {
                     id: tCpu
-
                     text: cpuUsage + "%"
                     color: colors.fg
                     font.pixelSize: fontSize - 1
                     font.family: fontFamily
+                    Layout.alignment: Qt.AlignBaseline
                 }
 
             }
@@ -362,7 +362,7 @@ Rectangle {
                 Layout.preferredHeight: 10
             }
 
-            Row {
+            RowLayout {
                 spacing: 6
 
                 Text {
@@ -370,16 +370,16 @@ Rectangle {
                     color: colors.red
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: fontSize + 2
-                    anchors.baseline: tCpu.baseline
+                    Layout.alignment: Qt.AlignBaseline
                 }
 
                 Text {
                     id: tRam
-
                     text: memUsage + "%"
                     color: colors.fg
                     font.pixelSize: fontSize - 1
                     font.family: fontFamily
+                    Layout.alignment: Qt.AlignBaseline
                 }
 
             }
@@ -389,14 +389,14 @@ Rectangle {
         // Network
         InfoPill {
             visible: networkService
-            Row {
+            RowLayout {
                 spacing: 6
                 Text {
                     text: networkService.wifiEnabled ? "󰖩" : "󰖪"
                     color: networkService.wifiEnabled ? colors.purple : colors.muted
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: fontSize + 2
-                    anchors.baseline: tNet.baseline
+                    Layout.alignment: Qt.AlignBaseline
                 }
                 Text {
                     id: tNet
@@ -407,18 +407,18 @@ Rectangle {
                     font.bold: true
                     Layout.maximumWidth: 150
                     elide: Text.ElideRight
+                    Layout.alignment: Qt.AlignBaseline
                 }
             }
-            MouseArea {
-                anchors.fill: parent
+            TapHandler {
                 cursorShape: Qt.PointingHandCursor
-                onClicked: globalState.requestSidePanelMenu("wifi")
+                onTapped: globalState.requestSidePanelMenu("wifi")
             }
         }
 
         // Volume
         InfoPill {
-            Row {
+            RowLayout {
                 spacing: 6
 
                 Text {
@@ -426,28 +426,30 @@ Rectangle {
                     color: colors.yellow
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: fontSize + 2
-                    anchors.baseline: tVol.baseline
+                    Layout.alignment: Qt.AlignBaseline
                     Behavior on text { enabled: false } // Prevent animation on char change
                 }
 
                 Text {
                     id: tVol
-
                     text: (volumeService && volumeService.muted) ? "MUT" : (volumeLevel + "%")
                     color: (volumeService && volumeService.muted) ? colors.red : colors.fg
                     font.pixelSize: fontSize - 1
                     font.family: fontFamily
                     font.bold: true
+                    Layout.alignment: Qt.AlignBaseline
                 }
 
             }
             
-            MouseArea {
-                anchors.fill: parent
+            TapHandler {
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
+                onTapped: {
                     if (volumeService) volumeService.toggleMute();
                 }
+            }
+            // WheelHandler is separate
+            WheelHandler {
                 onWheel: (wheel) => {
                     if (!volumeService) return;
                     if (wheel.angleDelta.y > 0)
@@ -456,7 +458,6 @@ Rectangle {
                         volumeService.decreaseVolume();
                 }
             }
-
         }
 
         // Clock

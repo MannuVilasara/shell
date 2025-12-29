@@ -136,7 +136,7 @@ ColumnLayout {
             Layout.fillWidth: true
             implicitHeight: 64
             label: "Bluetooth"
-            sublabel: bluetoothService.enabled ? (bluetoothService.connectedDevices.length > 0 ? bluetoothService.connectedDevices[0].name : "On") : "Off"
+            sublabel: bluetoothService.enabled ? (bluetoothService.connectedDevices && bluetoothService.connectedDevices.length > 0 ? bluetoothService.connectedDevices[0].name : "On") : "Off"
             icon: "󰂯"
             active: bluetoothService.enabled
             showChevron: true

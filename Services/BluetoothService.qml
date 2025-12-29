@@ -20,8 +20,13 @@ Singleton {
     readonly property var devices: adapter ? adapter.devices : null
     
     readonly property var devicesList: {
-        if (!adapter || !adapter.devices) return [];
-        return adapter.devices.values;
+        if (!adapter) return [];
+
+        var list = (adapter.devices && adapter.devices.values) ? adapter.devices.values : [];
+        var globalList = (Bluetooth.devices && Bluetooth.devices.values) ? Bluetooth.devices.values : [];
+        
+        // Prefer global list if adapter list is empty
+        return (list.length > 0) ? list : globalList;
     }
     
     readonly property var connectedDevices: {
@@ -127,7 +132,9 @@ BluetoothAgent {
     }
 
     function startDiscovery() {
-        if (adapter && adapter.enabled) adapter.discovering = true;
+        if (adapter && adapter.state === BluetoothAdapterState.Enabled) {
+            adapter.discovering = true;
+        }
     }
 
     function stopDiscovery() {
@@ -247,17 +254,26 @@ BluetoothAgent {
     Timer {
         id: discoveryTimer
         interval: 1000
-        running: true
         repeat: false
         onTriggered: {
-            if (root.enabled) root.startDiscovery();
+            if (adapter && adapter.state === BluetoothAdapterState.Enabled) {
+                console.log("[BluetoothService] Starting native discovery via Timer");
+                adapter.discovering = true;
+            }
         }
     }
 
     Connections {
         target: adapter
+        function onStateChanged() {
+            if (!adapter) return;
+            
+            if (adapter.state === BluetoothAdapterState.Enabled) {
+                discoveryTimer.start();
+            }
+        }
         function onEnabledChanged() {
-            if (adapter && adapter.enabled) root.startDiscovery();
+             if (adapter && adapter.enabled) discoveryTimer.start();
         }
     }
 }

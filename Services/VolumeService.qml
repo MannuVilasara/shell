@@ -7,8 +7,9 @@ Item {
     id: root
 
     // Track all nodes to ensure properties are updated
+    // Track only sinks to minimize warnings on transient nodes
     PwObjectTracker {
-        objects: Pipewire.nodes.values
+        objects: sinks
     }
 
     // Filter for actual hardware sinks (not streams, check for audio capability)

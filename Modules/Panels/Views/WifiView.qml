@@ -242,7 +242,11 @@ Control {
             visible: !NetworkService.wifiEnabled
             text: "Wi-Fi is Off"
             color: theme.muted
-            anchors.centerIn: parent
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
         }
 
     }

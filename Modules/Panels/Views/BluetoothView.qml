@@ -102,8 +102,11 @@ Control {
             visible: !bluetoothService.enabled
             text: "Bluetooth is Off"
             color: theme.muted
-            anchors.centerIn: parent
-            Layout.minimumHeight: 100
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
         }
 
         ListView {
