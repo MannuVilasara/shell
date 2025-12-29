@@ -43,6 +43,15 @@ Item {
     // integer level 0-100 for Bar compatibility
     readonly property int level: Math.round(volume * 100)
 
+    readonly property string icon: {
+        if (muted) return "󰖁";
+        const v = volume;
+        if (v <= 0) return "󰝟";
+        if (v < 0.33) return "󰕿";
+        if (v < 0.66) return "󰖀";
+        return "󰕾";
+    }
+
     function setVolume(v) {
         if (sink && sink.audio) {
             if (sink.audio.muted) sink.audio.muted = false;

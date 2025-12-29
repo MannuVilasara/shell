@@ -15,6 +15,7 @@ Item {
     property alias activeWindow: activeWindowService
     property alias layout: layoutService
     property alias appState: appStateService
+    property var network: NetworkService
 
     Colors {
         id: colorsService

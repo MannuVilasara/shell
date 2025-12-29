@@ -44,6 +44,7 @@ Variants {
             currentLayout: root.context.layout.layout
             time: root.context.time.currentTime
             volumeService: root.context.volume
+            networkService: root.context.network
         }
 
     }

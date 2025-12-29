@@ -24,6 +24,7 @@ Rectangle {
     required property string time
     property bool floating: true
     property var volumeService
+    property var networkService
 
     anchors.fill: parent
     color: colors.bg
@@ -338,11 +339,11 @@ Rectangle {
                 spacing: 6
 
                 Text {
-                    text: "CPU"
-                    color: colors.red
-                    font.bold: true
-                    font.pixelSize: fontSize - 2
-                    anchors.baseline: tCpu.baseline
+                    text: ""
+                    color: colors.blue
+                    font.family: "Symbols Nerd Font"
+                    font.pixelSize: fontSize + 2
+                    anchors.baseline: tRam.baseline
                 }
 
                 Text {
@@ -364,11 +365,11 @@ Rectangle {
                 spacing: 6
 
                 Text {
-                    text: "RAM"
-                    color: colors.blue
-                    font.bold: true
-                    font.pixelSize: fontSize - 2
-                    anchors.baseline: tRam.baseline
+                    text: ""
+                    color: colors.red
+                    font.family: "Symbols Nerd Font"
+                    font.pixelSize: fontSize + 2
+                    anchors.baseline: tCpu.baseline
                 }
 
                 Text {
@@ -384,17 +385,48 @@ Rectangle {
 
         }
 
+        // Network
+        InfoPill {
+            visible: networkService
+            Row {
+                spacing: 6
+                Text {
+                    text: networkService.wifiEnabled ? "󰖩" : "󰖪"
+                    color: networkService.wifiEnabled ? colors.purple : colors.muted
+                    font.family: "Symbols Nerd Font"
+                    font.pixelSize: fontSize + 2
+                    anchors.baseline: tNet.baseline
+                }
+                Text {
+                    id: tNet
+                    text: networkService.wifiEnabled ? (networkService.active ? networkService.active.ssid : "Disconnected") : "Off"
+                    color: colors.fg
+                    font.pixelSize: fontSize - 1
+                    font.family: fontFamily
+                    font.bold: true
+                    Layout.maximumWidth: 150
+                    elide: Text.ElideRight
+                }
+            }
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: networkService.toggleWifi()
+            }
+        }
+
         // Volume
         InfoPill {
             Row {
                 spacing: 6
 
                 Text {
-                    text: "VOL"
+                    text: volumeService ? volumeService.icon : "󰕾"
                     color: colors.yellow
-                    font.bold: true
-                    font.pixelSize: fontSize - 2
+                    font.family: "Symbols Nerd Font"
+                    font.pixelSize: fontSize + 2
                     anchors.baseline: tVol.baseline
+                    Behavior on text { enabled: false } // Prevent animation on char change
                 }
 
                 Text {
