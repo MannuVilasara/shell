@@ -9,6 +9,20 @@ QtObject {
     property bool authenticating: false
     property PamContext pamCtx
 
+    signal success()
+    signal failure()
+    signal error()
+
+    function submit(password) {
+        if (password === "")
+            return ;
+
+        console.log("[PamAuth] Starting authentication");
+        buffer = password;
+        authenticating = true;
+        pamCtx.start();
+    }
+
     pamCtx: PamContext {
         config: "passwd"
         onResponseRequiredChanged: {
@@ -30,20 +44,6 @@ QtObject {
                     root.failure();
             }
         }
-    }
-
-    signal success()
-    signal failure()
-    signal error()
-
-    function submit(password) {
-        if (password === "")
-            return ;
-
-        console.log("[PamAuth] Starting authentication");
-        buffer = password;
-        authenticating = true;
-        pamCtx.start();
     }
 
 }

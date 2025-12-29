@@ -6,10 +6,6 @@ Item {
     id: root
 
     property ListModel notifications
-
-    notifications: ListModel {
-    }
-
     property var currentPopup: null
     property bool popupVisible: false
     property int notificationCounter: 0
@@ -101,6 +97,9 @@ Item {
 
         interval: 5000
         onTriggered: root.popupVisible = false
+    }
+
+    notifications: ListModel {
     }
 
 }

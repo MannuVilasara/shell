@@ -30,10 +30,10 @@ PanelWindow {
     WlrLayershell.namespace: "matte-power-menu"
     WlrLayershell.exclusiveZone: -1
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-
     onVisibleChanged: {
         if (visible)
             eventHandler.forceActiveFocus();
+
     }
 
     anchors {
@@ -45,9 +45,9 @@ PanelWindow {
 
     FocusScope {
         id: eventHandler
+
         anchors.fill: parent
         focus: true
-
         Keys.onEscapePressed: globalState.powerMenuOpen = false
         Keys.onUpPressed: {
             currentIndex = (currentIndex - 1 + buttonsModel.count) % buttonsModel.count;
@@ -64,7 +64,7 @@ PanelWindow {
                 if (buttonsModel.get(i).shortcut === key) {
                     runCommand(buttonsModel.get(i).command);
                     event.accepted = true;
-                    return;
+                    return ;
                 }
             }
         }
@@ -114,6 +114,7 @@ PanelWindow {
             command: "loginctl terminate-user $USER"
             shortcut: "X"
         }
+
     }
 
     Rectangle {
@@ -131,11 +132,14 @@ PanelWindow {
                 duration: 300
                 easing.type: Easing.OutQuad
             }
+
         }
+
     }
 
     Rectangle {
         id: panel
+
         anchors.centerIn: parent
         width: 380
         height: 400
@@ -143,14 +147,6 @@ PanelWindow {
         color: root.colors.bg
         opacity: root.isOpen ? 1 : 0
         scale: root.isOpen ? 1 : 0.85
-
-        Behavior on opacity {
-            NumberAnimation { duration: 300 }
-        }
-
-        Behavior on scale {
-            NumberAnimation { duration: 400; easing.type: Easing.OutBack }
-        }
 
         Repeater {
             model: buttonsModel.count
@@ -163,10 +159,6 @@ PanelWindow {
                 radius: 12
                 color: root.currentIndex === index ? root.colors.accent : "transparent"
 
-                Behavior on color {
-                    ColorAnimation { duration: 150 }
-                }
-
                 Text {
                     x: 16
                     y: (parent.height - height) / 2
@@ -176,8 +168,20 @@ PanelWindow {
                     color: root.currentIndex === index ? root.colors.bg : root.colors.text
                     opacity: root.currentIndex === index ? 1 : 0.7
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 150
+                        }
+
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+
+                    }
+
                 }
 
                 Text {
@@ -188,7 +192,13 @@ PanelWindow {
                     font.weight: Font.Medium
                     color: root.currentIndex === index ? root.colors.bg : root.colors.text
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 150
+                        }
+
+                    }
+
                 }
 
                 Text {
@@ -199,8 +209,20 @@ PanelWindow {
                     color: root.currentIndex === index ? root.colors.bg : root.colors.text
                     opacity: root.currentIndex === index ? 0.8 : 0.5
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 150
+                        }
+
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 150
+                        }
+
+                    }
+
                 }
 
                 MouseArea {
@@ -210,7 +232,33 @@ PanelWindow {
                     onClicked: root.runCommand(buttonsModel.get(index).command)
                     cursorShape: Qt.PointingHandCursor
                 }
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 150
+                    }
+
+                }
+
             }
+
         }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 300
+            }
+
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: 400
+                easing.type: Easing.OutBack
+            }
+
+        }
+
     }
+
 }

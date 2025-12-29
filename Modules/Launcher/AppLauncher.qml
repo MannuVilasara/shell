@@ -36,10 +36,12 @@ PanelWindow {
             var startB = nameB.startsWith(q);
             if (startA && !startB)
                 return -1;
- // A wins
+
+            // A wins
             if (!startA && startB)
                 return 1;
- // B wins
+
+            // B wins
             return nameA.localeCompare(nameB);
         });
         return matches;
@@ -241,6 +243,5 @@ PanelWindow {
         }
 
     }
-
 
 }

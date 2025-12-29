@@ -1,8 +1,8 @@
+import "../../../../Services"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Core
-import "../../../../Services" 
 
 ColumnLayout {
     id: root
@@ -21,11 +21,6 @@ ColumnLayout {
         border.width: 1
         clip: true
 
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.rgba(theme.blue.r, theme.blue.g, theme.blue.b, 0.15) }
-            GradientStop { position: 1.0; color: Qt.rgba(theme.purple.r, theme.purple.g, theme.purple.b, 0.15) }
-        }
-
         RowLayout {
             anchors.fill: parent
             anchors.margins: 24
@@ -36,7 +31,7 @@ ColumnLayout {
                 Layout.preferredWidth: 64
                 Layout.preferredHeight: 64
                 Layout.alignment: Qt.AlignVCenter
-                
+
                 Text {
                     anchors.centerIn: parent
                     text: WeatherService.icon
@@ -44,8 +39,9 @@ ColumnLayout {
                     font.pixelSize: 64
                     color: theme.accent
                     style: Text.Outline
-                    styleColor: Qt.rgba(0,0,0,0.1)
+                    styleColor: Qt.rgba(0, 0, 0, 0.1)
                 }
+
             }
 
             // Text Info
@@ -74,13 +70,14 @@ ColumnLayout {
                 RowLayout {
                     Layout.topMargin: 6
                     spacing: 6
-                    
+
                     Text {
                         text: ""
                         color: theme.blue
                         font.family: "Symbols Nerd Font"
                         font.pixelSize: 12
                     }
+
                     Text {
                         text: WeatherService.city
                         color: theme.subtext
@@ -88,9 +85,26 @@ ColumnLayout {
                         font.bold: true
                         opacity: 0.9
                     }
+
                 }
+
             }
+
         }
+
+        gradient: Gradient {
+            GradientStop {
+                position: 0
+                color: Qt.rgba(theme.blue.r, theme.blue.g, theme.blue.b, 0.15)
+            }
+
+            GradientStop {
+                position: 1
+                color: Qt.rgba(theme.purple.r, theme.purple.g, theme.purple.b, 0.15)
+            }
+
+        }
+
     }
 
     // --- Details Grid ---
@@ -127,6 +141,7 @@ ColumnLayout {
             value: WeatherService.uvIndex
             iconTint: theme.yellow
         }
+
     }
 
     // --- Weekly Forecast Section (Horizontal Square Cards) ---
@@ -153,6 +168,7 @@ ColumnLayout {
 
                 Rectangle {
                     required property var modelData
+
                     Layout.fillWidth: true
                     Layout.preferredHeight: 110 // Height to create a square-ish aspect ratio
                     radius: 16
@@ -190,10 +206,15 @@ ColumnLayout {
                             font.bold: true
                             Layout.alignment: Qt.AlignHCenter
                         }
+
                     }
+
                 }
+
             }
+
         }
+
     }
 
     // --- Reusable Detail Component ---
@@ -228,27 +249,32 @@ ColumnLayout {
                     font.pixelSize: 18
                     color: iconTint
                 }
+
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 2
-                
+
                 Text {
                     text: label
                     color: theme.subtext
                     font.pixelSize: 11
                     opacity: 0.8
                 }
-                
+
                 Text {
                     text: value
                     color: theme.fg
                     font.pixelSize: 14
                     font.bold: true
                 }
+
             }
+
         }
+
     }
+
 }

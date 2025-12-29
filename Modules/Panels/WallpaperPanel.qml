@@ -67,14 +67,12 @@ PanelWindow {
                 updateWallpaperData();
                 searchInput.text = "";
                 filterText = "";
-                
                 // Select current wallpaper
                 var idx = filteredWallpapers.indexOf(currentWallpaper);
                 if (idx !== -1) {
                     wallpaperGrid.currentIndex = idx;
                     wallpaperGrid.positionViewAtIndex(idx, GridView.Center);
                 }
-                
                 wallpaperGrid.forceActiveFocus();
             } else {
                 internalOpen = false;
@@ -128,18 +126,12 @@ PanelWindow {
     Rectangle {
         id: panelContent
 
+        property real offset: root.internalOpen ? 20 : -height
+
         width: Math.min(900, parent.width - 40)
         height: 500
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        
-        property real offset: root.internalOpen ? 20 : -height
-        Behavior on offset {
-            NumberAnimation {
-                duration: 400
-                easing.type: Easing.OutExpo
-            }
-        }
         anchors.bottomMargin: offset
         color: theme.bg
         radius: 16
@@ -210,9 +202,9 @@ PanelWindow {
                                 updateFiltered();
                             }
                             Keys.onDownPressed: {
-                                if (wallpaperGrid.count > 0) {
+                                if (wallpaperGrid.count > 0)
                                     wallpaperGrid.forceActiveFocus();
-                                }
+
                             }
                             Keys.onEscapePressed: globalState.wallpaperPanelOpen = false
 
@@ -336,28 +328,21 @@ PanelWindow {
 
                         Image {
                             id: wImage
-                            
+
                             readonly property string fileName: modelData.split('/').pop()
                             readonly property string thumbSource: "file://" + WallpaperService.previewDirectory + "/" + fileName
                             readonly property string originalSource: "file://" + modelData
-                            
+
                             anchors.fill: parent
                             anchors.margins: 4
-                            
                             // Try thumbnail first, fallback to original
                             source: thumbSource
-                            
                             opacity: status === Image.Ready ? 1 : 0
-                            Behavior on opacity {
-                                NumberAnimation { duration: 300; easing.type: Easing.OutQuad }
-                            }
-                            
                             onStatusChanged: {
-                                if (status === Image.Error && source !== originalSource) {
+                                if (status === Image.Error && source !== originalSource)
                                     source = originalSource;
-                                }
+
                             }
-                            
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
                             sourceSize.width: 300
@@ -365,6 +350,14 @@ PanelWindow {
                             cache: true
                             smooth: true
                             layer.enabled: true
+
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: 300
+                                    easing.type: Easing.OutQuad
+                                }
+
+                            }
 
                             layer.effect: OpacityMask {
 
@@ -422,7 +415,13 @@ PanelWindow {
 
         }
 
+        Behavior on offset {
+            NumberAnimation {
+                duration: 400
+                easing.type: Easing.OutExpo
+            }
 
+        }
 
         layer.effect: DropShadow {
             transparentBorder: true

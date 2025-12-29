@@ -1,8 +1,8 @@
+import "../../../../Services"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Core
-import "../../../../Services" 
 
 ColumnLayout {
     id: root
@@ -53,40 +53,38 @@ ColumnLayout {
                 // Check if we have valid data
                 if (!memService.total || memService.total <= 0) {
                     // Check if at least percentage is available
-                    if (memService.usage && memService.usage > 0) {
+                    if (memService.usage && memService.usage > 0)
                         return memService.usage + "%";
-                    }
+
                     return "Loading...";
                 }
-                
                 // Calculate GB values
-                var usedGb = memService.used / 1073741824;
-                var totalGb = memService.total / 1073741824;
-                
+                var usedGb = memService.used / 1.07374e+09;
+                var totalGb = memService.total / 1.07374e+09;
                 // Safety check for NaN
-                if (isNaN(usedGb) || isNaN(totalGb) || totalGb <= 0) {
+                if (isNaN(usedGb) || isNaN(totalGb) || totalGb <= 0)
                     return "N/A";
-                }
-                
+
                 // Format with one decimal place
                 return usedGb.toFixed(1) + " / " + totalGb.toFixed(1) + " GB";
             }
             progress: {
                 // If total is not available, use percentage
                 if (!memService.total || memService.total <= 0) {
-                    if (memService.usage && memService.usage > 0) {
+                    if (memService.usage && memService.usage > 0)
                         return memService.usage / 100;
-                    }
+
                     return 0;
                 }
-                
                 // Calculate progress from used/total
                 var p = memService.used / memService.total;
-                
                 // Safety bounds
-                if (isNaN(p) || p < 0) return 0;
-                if (p > 1) return 1;
-                
+                if (isNaN(p) || p < 0)
+                    return 0;
+
+                if (p > 1)
+                    return 1;
+
                 return p;
             }
         }
@@ -99,6 +97,7 @@ ColumnLayout {
             valueText: "24%"
             progress: 0.24
         }
+
     }
 
     // Debug info (optional - remove in production)
@@ -148,19 +147,25 @@ ColumnLayout {
                 // Header Row
                 RowLayout {
                     Layout.fillWidth: true
+
                     Text {
                         text: label
                         font.pixelSize: 12
                         font.bold: true
                         color: theme.fg
                     }
-                    Item { Layout.fillWidth: true }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
                     Text {
                         text: valueText
                         font.pixelSize: 12
                         color: theme.fg
                         font.family: "JetBrains Mono" // Monospace for numbers
                     }
+
                 }
 
                 // Progress Bar Background
@@ -179,11 +184,21 @@ ColumnLayout {
 
                         // Smooth animation when values change
                         Behavior on width {
-                            NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
+                            NumberAnimation {
+                                duration: 400
+                                easing.type: Easing.OutCubic
+                            }
+
                         }
+
                     }
+
                 }
+
             }
+
         }
+
     }
+
 }

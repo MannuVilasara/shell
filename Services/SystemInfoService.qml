@@ -43,19 +43,19 @@ Item {
 
     }
 
-   Process {
-    command: ["cat", "/proc/sys/kernel/hostname"]
-    running: true
+    Process {
+        command: ["cat", "/proc/sys/kernel/hostname"]
+        running: true
 
-    stdout: SplitParser {
-        onRead: (data) => {
-            if (data && data.trim() !== "") {
-                root.hostName = data.trim()
+        stdout: SplitParser {
+            onRead: (data) => {
+                if (data && data.trim() !== "")
+                    root.hostName = data.trim();
+
             }
         }
-    }
-}
 
+    }
 
     Process {
         command: ["uname", "-r"]
