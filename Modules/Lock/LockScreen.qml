@@ -6,7 +6,6 @@ import Quickshell
 import Quickshell.Wayland
 import qs.Core
 import qs.Services
-import "../../Services" as LocalServices
 
 WlSessionLockSurface {
     id: root
@@ -17,10 +16,11 @@ WlSessionLockSurface {
 
     color: "black"
 
-    // System info service for neofetch
-    LocalServices.SystemInfoService {
-        id: sysInfo
-    }
+    // Animation properties
+    property bool expanded: false
+    property real expandedWidth: Math.min(width - 60, 920)
+    property real expandedHeight: Math.min(height - 80, 480)
+    property real collapsedSize: 120
 
     // Blurred window preview background
     ScreencopyView {
@@ -28,12 +28,7 @@ WlSessionLockSurface {
         anchors.fill: parent
         captureSource: root.screen
         opacity: 0
-        Component.onCompleted: opacity = 1
         layer.enabled: visible && opacity > 0
-
-        Behavior on opacity {
-            NumberAnimation { duration: 800; easing.type: Easing.OutQuad }
-        }
 
         layer.effect: FastBlur {
             radius: 48
@@ -43,502 +38,517 @@ WlSessionLockSurface {
 
     // Dark overlay
     Rectangle {
+        id: overlay
         anchors.fill: parent
         color: "#000000"
-        opacity: 0.45
+        opacity: 0
     }
 
-    // Main Bento Grid Container - 3 columns, 2 rows
-    Item {
-        id: bentoContainer
+    // Morphing container - starts as lock icon, expands to bento grid
+    Rectangle {
+        id: morphContainer
         anchors.centerIn: parent
-        width: Math.min(parent.width - 60, 920)
-        height: Math.min(parent.height - 80, 480)
-        scale: 0.85
-        opacity: 0
-
-        ParallelAnimation {
-            running: true
-            NumberAnimation { target: bentoContainer; property: "scale"; to: 1; duration: 600; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
-            NumberAnimation { target: bentoContainer; property: "opacity"; to: 1; duration: 400; easing.type: Easing.OutCubic }
+        
+        // Animated dimensions
+        width: root.expanded ? root.expandedWidth : root.collapsedSize
+        height: root.expanded ? root.expandedHeight : root.collapsedSize
+        
+        color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.9)
+        radius: root.expanded ? 20 : 30
+        border.width: root.expanded ? 0 : 2
+        border.color: root.colors.accent
+        
+        scale: 0
+        rotation: -180
+        
+        Behavior on width {
+            NumberAnimation { duration: 500; easing.type: Easing.OutBack; easing.overshoot: 1.02 }
+        }
+        Behavior on height {
+            NumberAnimation { duration: 500; easing.type: Easing.OutBack; easing.overshoot: 1.02 }
+        }
+        Behavior on radius {
+            NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
+        }
+        Behavior on border.width {
+            NumberAnimation { duration: 200 }
         }
 
-        // Grid Layout - 3 columns
-        RowLayout {
+        // Lock icon (visible when collapsed)
+        Text {
+            id: lockIcon
+            anchors.centerIn: parent
+            text: "󰌾"
+            font.family: "Symbols Nerd Font"
+            font.pixelSize: 48
+            color: root.colors.accent
+            opacity: root.expanded ? 0 : 1
+            scale: root.expanded ? 0.5 : 1
+            
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+            }
+        }
+
+        // Bento grid content (visible when expanded)
+        Item {
+            id: bentoContent
             anchors.fill: parent
-            spacing: 12
+            anchors.margins: 12
+            opacity: root.expanded ? 1 : 0
+            scale: root.expanded ? 1 : 0.8
+            
+            Behavior on opacity {
+                NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
+            }
+            Behavior on scale {
+                NumberAnimation { duration: 400; easing.type: Easing.OutCubic }
+            }
 
-            // LEFT COLUMN
-            ColumnLayout {
-                Layout.preferredWidth: (parent.width - 24) * 0.30
-                Layout.fillHeight: true
+            RowLayout {
+                anchors.fill: parent
                 spacing: 12
+                visible: root.expanded
 
-                // Clock Card (top-left)
-                BentoCard {
-                    id: clockCard
-                    Layout.fillWidth: true
+                // LEFT COLUMN
+                ColumnLayout {
+                    Layout.preferredWidth: (parent.width - 24) * 0.30
                     Layout.fillHeight: true
-                    cardColor: root.colors.surface
-                    borderColor: root.colors.border
-                    animDelay: 0
+                    spacing: 12
 
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 0
+                    // Clock Card
+                    BentoCard {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        cardColor: root.colors.surface
+                        borderColor: root.colors.border
 
-                        Text {
-                            text: Qt.formatTime(new Date(), "hh")
-                            font.pixelSize: 72
-                            font.weight: Font.Black
-                            color: root.colors.accent
-                            Layout.alignment: Qt.AlignHCenter
-                            lineHeight: 0.85
-                            Timer { interval: 1000; running: true; repeat: true; onTriggered: parent.text = Qt.formatTime(new Date(), "hh") }
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: 0
+
+                            Text {
+                                text: Qt.formatTime(new Date(), "hh")
+                                font.pixelSize: 64
+                                font.weight: Font.Black
+                                color: root.colors.accent
+                                Layout.alignment: Qt.AlignHCenter
+                                lineHeight: 0.85
+                                Timer { interval: 1000; running: true; repeat: true; onTriggered: parent.text = Qt.formatTime(new Date(), "hh") }
+                            }
+
+                            Text {
+                                text: Qt.formatTime(new Date(), "mm")
+                                font.pixelSize: 64
+                                font.weight: Font.Black
+                                color: root.colors.fg
+                                Layout.alignment: Qt.AlignHCenter
+                                lineHeight: 0.85
+                                Timer { interval: 1000; running: true; repeat: true; onTriggered: parent.text = Qt.formatTime(new Date(), "mm") }
+                            }
+
+                            Text {
+                                text: Qt.formatDate(new Date(), "ddd, MMM d")
+                                font.pixelSize: 12
+                                color: root.colors.muted
+                                Layout.alignment: Qt.AlignHCenter
+                                Layout.topMargin: 10
+                            }
+                        }
+                    }
+
+                    // Music Card
+                    BentoCard {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 130
+                        cardColor: root.colors.surface
+                        borderColor: root.colors.border
+                        clip: true
+
+                        // Blurred album art background
+                        Image {
+                            anchors.fill: parent
+                            source: MprisService.artUrl
+                            fillMode: Image.PreserveAspectCrop
+                            visible: MprisService.artUrl !== ""
+                            opacity: 0.2
+                            layer.enabled: visible
+                            layer.effect: FastBlur { radius: 32 }
                         }
 
-                        Text {
-                            text: Qt.formatTime(new Date(), "mm")
-                            font.pixelSize: 72
-                            font.weight: Font.Black
-                            color: root.colors.fg
-                            Layout.alignment: Qt.AlignHCenter
-                            lineHeight: 0.85
-                            Timer { interval: 1000; running: true; repeat: true; onTriggered: parent.text = Qt.formatTime(new Date(), "mm") }
-                        }
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 12
+                            spacing: 8
 
-                        Text {
-                            text: Qt.formatDate(new Date(), "ddd, MMM d")
-                            font.pixelSize: 13
-                            color: root.colors.muted
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.topMargin: 12
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 12
+
+                                // Album art with rounded corners
+                                Rectangle {
+                                    Layout.preferredWidth: 64
+                                    Layout.preferredHeight: 64
+                                    radius: 12
+                                    color: Qt.rgba(0, 0, 0, 0.3)
+                                    clip: true
+
+                                    Image {
+                                        anchors.fill: parent
+                                        source: MprisService.artUrl
+                                        fillMode: Image.PreserveAspectCrop
+                                        visible: MprisService.artUrl !== ""
+                                    }
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "󰎈"
+                                        font.family: "Symbols Nerd Font"
+                                        font.pixelSize: 28
+                                        color: root.colors.muted
+                                        visible: MprisService.artUrl === ""
+                                    }
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    spacing: 2
+
+                                    Item { Layout.fillHeight: true }
+
+                                    Text {
+                                        text: MprisService.title || "No Media Playing"
+                                        color: root.colors.fg
+                                        font.pixelSize: 13
+                                        font.weight: Font.Bold
+                                        Layout.fillWidth: true
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Text {
+                                        text: MprisService.artist || "Unknown Artist"
+                                        color: root.colors.muted
+                                        font.pixelSize: 11
+                                        Layout.fillWidth: true
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Item { Layout.fillHeight: true }
+                                }
+                            }
+
+                            // Playback controls centered
+                            RowLayout {
+                                Layout.alignment: Qt.AlignHCenter
+                                spacing: 24
+
+                                Text {
+                                    text: "󰒮"
+                                    font.family: "Symbols Nerd Font"
+                                    font.pixelSize: 18
+                                    color: root.colors.fg
+                                    opacity: 0.8
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        anchors.margins: -8
+                                        onClicked: MprisService.previous()
+                                        cursorShape: Qt.PointingHandCursor
+                                        hoverEnabled: true
+                                        onEntered: parent.opacity = 1
+                                        onExited: parent.opacity = 0.8
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: 36
+                                    height: 36
+                                    radius: 18
+                                    color: root.colors.accent
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: MprisService.isPlaying ? "󰏤" : "󰐊"
+                                        font.family: "Symbols Nerd Font"
+                                        font.pixelSize: 18
+                                        color: root.colors.bg
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: MprisService.playPause()
+                                        cursorShape: Qt.PointingHandCursor
+                                    }
+                                }
+
+                                Text {
+                                    text: "󰒭"
+                                    font.family: "Symbols Nerd Font"
+                                    font.pixelSize: 18
+                                    color: root.colors.fg
+                                    opacity: 0.8
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        anchors.margins: -8
+                                        onClicked: MprisService.next()
+                                        cursorShape: Qt.PointingHandCursor
+                                        hoverEnabled: true
+                                        onEntered: parent.opacity = 1
+                                        onExited: parent.opacity = 0.8
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
-                // Music Card (bottom-left)
-                BentoCard {
-                    id: musicCard
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 130
-                    cardColor: root.colors.surface
-                    borderColor: root.colors.border
-                    animDelay: 100
-                    clip: true
+                // CENTER COLUMN
+                ColumnLayout {
+                    Layout.preferredWidth: (parent.width - 24) * 0.40
+                    Layout.fillHeight: true
+                    spacing: 12
 
-                    Image {
-                        anchors.fill: parent
-                        source: MprisService.artUrl
-                        fillMode: Image.PreserveAspectCrop
-                        visible: MprisService.artUrl !== ""
-                        opacity: 0.15
-                        layer.enabled: visible
-                        layer.effect: FastBlur { radius: 40 }
-                    }
+                    // System Info Card (Neofetch)
+                    BentoCard {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        cardColor: root.colors.surface
+                        borderColor: root.colors.border
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 10
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 24
 
-                        Rectangle {
-                            Layout.preferredWidth: 60
-                            Layout.preferredHeight: 60
-                            radius: 12
-                            color: root.colors.tileActive
-                            clip: true
-
-                            Image {
-                                anchors.fill: parent
-                                source: MprisService.artUrl
-                                fillMode: Image.PreserveAspectCrop
-                                visible: MprisService.artUrl !== ""
-                            }
-
+                            // Arch Logo
                             Text {
-                                anchors.centerIn: parent
-                                text: "󰎈"
+                                text: "󰣇"
                                 font.family: "Symbols Nerd Font"
-                                font.pixelSize: 24
-                                color: root.colors.muted
-                                visible: MprisService.artUrl === ""
-                            }
-                        }
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 2
-
-                            Text {
-                                text: MprisService.title || "No Media"
-                                color: root.colors.fg
-                                font.pixelSize: 12
-                                font.bold: true
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
+                                font.pixelSize: 100
+                                color: root.colors.accent
                             }
 
-                            Text {
-                                text: MprisService.artist || ""
-                                color: root.colors.muted
-                                font.pixelSize: 10
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                                visible: text !== ""
-                            }
+                            // System info column
+                            ColumnLayout {
+                                spacing: 5
 
-                            RowLayout {
-                                spacing: 12
-                                Layout.topMargin: 4
+                                // User@Host header
+                                Text {
+                                    text: Quickshell.env("USER") + "@archbtw"
+                                    font.weight: Font.Bold
+                                    font.pixelSize: 16
+                                    color: root.colors.accent
+                                    font.family: "JetBrainsMono Nerd Font"
+                                    Layout.bottomMargin: 4
+                                }
 
+                                // Separator line
+                                Rectangle {
+                                    Layout.preferredWidth: 180
+                                    Layout.preferredHeight: 2
+                                    color: root.colors.subtext
+                                    opacity: 0.4
+                                    Layout.bottomMargin: 4
+                                }
+
+                                // System info rows
                                 Repeater {
                                     model: [
-                                        { icon: "󰒮", action: function() { MprisService.previous() }, size: 14 },
-                                        { icon: MprisService.isPlaying ? "󰏤" : "󰐊", action: function() { MprisService.playPause() }, size: 18, accent: true },
-                                        { icon: "󰒭", action: function() { MprisService.next() }, size: 14 }
+                                        { label: "OS", value: "Arch Linux", icon: "", color: root.colors.blue },
+                                        { label: "Host", value: "archbtw", icon: "", color: root.colors.purple },
+                                        { label: "Kernel", value: "6.18.2-arch2-1", icon: "", color: root.colors.green },
+                                        { label: "Uptime", value: "3 hours", icon: "", color: root.colors.yellow },
+                                        { label: "Shell", value: "zsh", icon: "", color: root.colors.orange },
+                                        { label: "WM", value: "Hyprland", icon: "", color: root.colors.red }
                                     ]
 
-                                    Text {
+                                    RowLayout {
                                         required property var modelData
-                                        text: modelData.icon
-                                        font.family: "Symbols Nerd Font"
-                                        font.pixelSize: modelData.size
-                                        color: modelData.accent ? root.colors.accent : root.colors.fg
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            anchors.margins: -6
-                                            onClicked: modelData.action()
-                                            cursorShape: Qt.PointingHandCursor
+                                        spacing: 10
+
+                                        Text {
+                                            text: modelData.icon
+                                            color: modelData.color
+                                            font.family: "Symbols Nerd Font"
+                                            font.pixelSize: 13
+                                        }
+
+                                        Text {
+                                            text: modelData.label + ":"
+                                            color: modelData.color
+                                            font.weight: Font.Bold
+                                            font.pixelSize: 13
+                                            font.family: "JetBrainsMono Nerd Font"
+                                        }
+
+                                        Text {
+                                            text: modelData.value
+                                            color: root.colors.fg
+                                            font.pixelSize: 13
+                                            font.family: "JetBrainsMono Nerd Font"
+                                        }
+                                    }
+                                }
+
+                                // Color palette
+                                RowLayout {
+                                    spacing: 5
+                                    Layout.topMargin: 8
+
+                                    Repeater {
+                                        model: [root.colors.red, root.colors.green, root.colors.yellow, root.colors.blue, root.colors.purple, root.colors.teal]
+                                        Rectangle {
+                                            required property color modelData
+                                            width: 22
+                                            height: 11
+                                            radius: 2
+                                            color: modelData
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            }
 
-            // CENTER COLUMN
-            ColumnLayout {
-                Layout.preferredWidth: (parent.width - 24) * 0.40
-                Layout.fillHeight: true
-                spacing: 12
-
-                // Neofetch Card (top-center)
-                BentoCard {
-                    id: neofetchCard
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    cardColor: root.colors.surface
-                    borderColor: root.colors.border
-                    animDelay: 50
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 20
-
-                        Text {
-                            text: "󰣇"
-                            font.family: "Symbols Nerd Font"
-                            font.pixelSize: 80
-                            color: root.colors.accent
-                        }
+                    // Password Card
+                    BentoCard {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 120
+                        cardColor: root.colors.surface
+                        borderColor: inputField.activeFocus ? root.colors.accent : root.colors.border
 
                         ColumnLayout {
-                            spacing: 3
-
-                            Text {
-                                text: sysInfo.userName + "@" + sysInfo.hostName
-                                font.bold: true
-                                font.pixelSize: 14
-                                color: root.colors.blue
-                                font.family: "JetBrainsMono Nerd Font"
-                            }
-
-                            Rectangle {
-                                Layout.fillWidth: true
-                                height: 1
-                                color: root.colors.subtext
-                                opacity: 0.4
-                                Layout.bottomMargin: 4
-                            }
-
-                            Repeater {
-                                model: [
-                                    { label: "OS", key: "osName", icon: "", color: root.colors.blue },
-                                    { label: "Host", key: "hostName", icon: "", color: root.colors.purple },
-                                    { label: "Kernel", key: "kernelVersion", icon: "", color: root.colors.green },
-                                    { label: "Uptime", key: "uptime", icon: "", color: root.colors.yellow },
-                                    { label: "Shell", key: "shellName", icon: "", color: root.colors.orange },
-                                    { label: "WM", key: "wmName", icon: "", color: root.colors.red }
-                                ]
-
-                                RowLayout {
-                                    required property var modelData
-                                    spacing: 8
-
-                                    Text {
-                                        text: modelData.icon
-                                        color: modelData.color
-                                        font.family: "Symbols Nerd Font"
-                                        font.pixelSize: 11
-                                    }
-
-                                    Text {
-                                        text: modelData.label + ":"
-                                        color: modelData.color
-                                        font.bold: true
-                                        font.pixelSize: 11
-                                        font.family: "JetBrainsMono Nerd Font"
-                                    }
-
-                                    Text {
-                                        text: sysInfo[modelData.key] || "..."
-                                        color: root.colors.fg
-                                        font.pixelSize: 11
-                                        font.family: "JetBrainsMono Nerd Font"
-                                    }
-                                }
-                            }
+                            anchors.centerIn: parent
+                            spacing: 8
+                            width: parent.width - 32
 
                             RowLayout {
-                                Layout.topMargin: 6
-                                spacing: 4
+                                Layout.alignment: Qt.AlignHCenter
+                                spacing: 10
 
-                                Repeater {
-                                    model: [root.colors.red, root.colors.green, root.colors.yellow, root.colors.blue, root.colors.purple, root.colors.teal]
+                                Rectangle {
+                                    width: 44; height: 44; radius: 22
+                                    color: root.colors.surface
+                                    border.width: 2; border.color: root.colors.accent
 
-                                    Rectangle {
-                                        required property color modelData
-                                        width: 18
-                                        height: 10
-                                        radius: 2
-                                        color: modelData
+                                    Image {
+                                        id: avatarImg
+                                        anchors.fill: parent; anchors.margins: 2
+                                        source: "file://" + Quickshell.env("HOME") + "/.face"
+                                        fillMode: Image.PreserveAspectCrop
+                                        layer.enabled: status === Image.Ready
+                                        layer.effect: OpacityMask { maskSource: Rectangle { width: avatarImg.width; height: avatarImg.height; radius: width / 2 } }
                                     }
+
+                                    Text { anchors.centerIn: parent; text: "󰀄"; font.family: "Symbols Nerd Font"; font.pixelSize: 20; color: root.colors.muted; visible: avatarImg.status !== Image.Ready }
                                 }
+
+                                Text { text: Quickshell.env("USER") || "User"; color: root.colors.fg; font.pixelSize: 13; font.bold: true }
                             }
-                        }
-                    }
-                }
-
-                // Password Card (bottom-center)
-                BentoCard {
-                    id: passwordCard
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 130
-                    cardColor: root.colors.surface
-                    borderColor: inputField.activeFocus ? root.colors.accent : root.colors.border
-                    animDelay: 150
-
-                    Behavior on borderColor { ColorAnimation { duration: 200 } }
-
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 10
-                        width: parent.width - 40
-
-                        RowLayout {
-                            Layout.alignment: Qt.AlignHCenter
-                            spacing: 12
 
                             Rectangle {
-                                width: 48
-                                height: 48
-                                radius: 24
-                                color: root.colors.tileActive
-                                border.width: 2
-                                border.color: root.colors.accent
+                                Layout.fillWidth: true; height: 36; radius: 18
+                                color: Qt.rgba(0, 0, 0, 0.35)
+                                border.width: 1; border.color: inputField.activeFocus ? root.colors.accent : "transparent"
 
-                                Image {
-                                    id: avatarImg
-                                    anchors.fill: parent
-                                    anchors.margins: 2
-                                    source: "file://" + Quickshell.env("HOME") + "/.face"
-                                    fillMode: Image.PreserveAspectCrop
-                                    layer.enabled: status === Image.Ready
-                                    layer.effect: OpacityMask {
-                                        maskSource: Rectangle { width: avatarImg.width; height: avatarImg.height; radius: width / 2 }
+                                TextInput {
+                                    id: inputField
+                                    property int shakeOffset: 0
+                                    anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14
+                                    verticalAlignment: TextInput.AlignVCenter; horizontalAlignment: TextInput.AlignHCenter
+                                    color: root.colors.fg; font.pixelSize: 13; font.letterSpacing: 3
+                                    echoMode: TextInput.Password; passwordCharacter: "●"
+                                    focus: true
+                                    Component.onCompleted: forceActiveFocus()
+                                    onAccepted: { if (text.length > 0) { root.pam.submit(text); text = "" } }
+                                    x: anchors.leftMargin + shakeOffset
+
+                                    Text { anchors.centerIn: parent; text: "Enter password"; color: root.colors.muted; font.pixelSize: 11; visible: !parent.text && !parent.activeFocus }
+
+                                    SequentialAnimation {
+                                        id: shakeAnim
+                                        loops: 2
+                                        PropertyAnimation { target: inputField; property: "shakeOffset"; to: 8; duration: 40 }
+                                        PropertyAnimation { target: inputField; property: "shakeOffset"; to: -8; duration: 40 }
+                                        PropertyAnimation { target: inputField; property: "shakeOffset"; to: 0; duration: 40 }
+                                    }
+
+                                    Connections {
+                                        target: root.pam
+                                        function onFailure() {
+                                            shakeAnim.start()
+                                            inputField.color = root.colors.urgent
+                                            failTimer.start()
+                                        }
+                                        function onError() {
+                                            shakeAnim.start()
+                                            inputField.color = root.colors.urgent
+                                            failTimer.start()
+                                        }
+                                    }
+
+                                    Timer {
+                                        id: failTimer
+                                        interval: 1000
+                                        onTriggered: inputField.color = root.colors.fg
                                     }
                                 }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "󰀄"
-                                    font.family: "Symbols Nerd Font"
-                                    font.pixelSize: 22
-                                    color: root.colors.muted
-                                    visible: avatarImg.status !== Image.Ready
-                                }
-                            }
-
-                            Text {
-                                text: Quickshell.env("USER") || "User"
-                                color: root.colors.fg
-                                font.pixelSize: 14
-                                font.bold: true
-                            }
-                        }
-
-                        Rectangle {
-                            Layout.fillWidth: true
-                            height: 40
-                            radius: 20
-                            color: Qt.rgba(0, 0, 0, 0.4)
-                            border.width: 1
-                            border.color: inputField.activeFocus ? root.colors.accent : "transparent"
-
-                            TextInput {
-                                id: inputField
-                                property int shakeOffset: 0
-                                anchors.fill: parent
-                                anchors.leftMargin: 16
-                                anchors.rightMargin: 16
-                                verticalAlignment: TextInput.AlignVCenter
-                                horizontalAlignment: TextInput.AlignHCenter
-                                color: root.colors.fg
-                                font.pixelSize: 14
-                                font.letterSpacing: 3
-                                echoMode: TextInput.Password
-                                passwordCharacter: "●"
-                                focus: true
-                                Component.onCompleted: forceActiveFocus()
-                                onAccepted: { if (text.length > 0) { root.pam.submit(text); text = "" } }
-                                x: anchors.leftMargin + shakeOffset
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Enter password"
-                                    color: root.colors.muted
-                                    font.pixelSize: 12
-                                    visible: !parent.text && !parent.activeFocus
-                                }
-
-                                SequentialAnimation {
-                                    id: shakeAnim
-                                    loops: 2
-                                    PropertyAnimation { target: inputField; property: "shakeOffset"; to: 10; duration: 50 }
-                                    PropertyAnimation { target: inputField; property: "shakeOffset"; to: -10; duration: 50 }
-                                    PropertyAnimation { target: inputField; property: "shakeOffset"; to: 0; duration: 50 }
-                                }
-
-                                Connections {
-                                    target: root.pam
-                                    function onFailure() { shakeAnim.start(); inputField.color = root.colors.urgent; failTimer.start() }
-                                    function onError() { shakeAnim.start(); inputField.color = root.colors.urgent; failTimer.start() }
-                                }
-
-                                Timer { id: failTimer; interval: 1000; onTriggered: inputField.color = root.colors.fg }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // RIGHT COLUMN
-            ColumnLayout {
-                Layout.preferredWidth: (parent.width - 24) * 0.30
-                Layout.fillHeight: true
-                spacing: 12
-
-                // System Stats Card (top-right)
-                BentoCard {
-                    id: statsCard
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 130
-                    cardColor: root.colors.surface
-                    borderColor: root.colors.border
-                    animDelay: 100
-
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: 12
-
-                        Text {
-                            text: "System"
-                            color: root.colors.fg
-                            font.pixelSize: 12
-                            font.bold: true
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-
-                        RowLayout {
-                            spacing: 20
-                            Layout.alignment: Qt.AlignHCenter
-
-                            ProgressRing {
-                                width: 50; height: 50
-                                progress: 0.5
-                                ringColor: root.colors.accent
-                                bgColor: root.colors.muted
-                                label: "CPU"
-                                textColor: root.colors.fg
-                                mutedColor: root.colors.muted
-                            }
-
-                            ProgressRing {
-                                width: 50; height: 50
-                                progress: 0.6
-                                ringColor: root.colors.secondary
-                                bgColor: root.colors.muted
-                                label: "RAM"
-                                textColor: root.colors.fg
-                                mutedColor: root.colors.muted
                             }
                         }
                     }
                 }
 
-                // Notifications Card (bottom-right, fills remaining space)
-                BentoCard {
-                    id: notifCard
-                    Layout.fillWidth: true
+                // RIGHT COLUMN
+                ColumnLayout {
+                    Layout.preferredWidth: (parent.width - 24) * 0.30
                     Layout.fillHeight: true
-                    cardColor: root.colors.surface
-                    borderColor: root.colors.border
-                    animDelay: 200
+                    spacing: 12
 
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 8
+                    // System Stats Card
+                    BentoCard {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 120
+                        cardColor: root.colors.surface
+                        borderColor: root.colors.border
 
-                        Text {
-                            text: "Notifications"
-                            color: root.colors.fg
-                            font.pixelSize: 12
-                            font.bold: true
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: 10
+
+                            Text { text: "System"; color: root.colors.fg; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignHCenter }
+
+                            RowLayout {
+                                spacing: 16; Layout.alignment: Qt.AlignHCenter
+                                ProgressRing { width: 45; height: 45; progress: 0.5; ringColor: root.colors.accent; bgColor: root.colors.muted; label: "CPU"; textColor: root.colors.fg; mutedColor: root.colors.muted }
+                                ProgressRing { width: 45; height: 45; progress: 0.6; ringColor: root.colors.secondary; bgColor: root.colors.muted; label: "RAM"; textColor: root.colors.fg; mutedColor: root.colors.muted }
+                            }
                         }
+                    }
 
-                        Rectangle {
-                            Layout.fillWidth: true
-                            height: 1
-                            color: root.colors.border
-                            opacity: 0.5
-                        }
+                    // Notifications Card
+                    BentoCard {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        cardColor: root.colors.surface
+                        borderColor: root.colors.border
 
-                        Item {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
+                        ColumnLayout {
+                            anchors.fill: parent; anchors.margins: 10; spacing: 6
 
-                            ColumnLayout {
-                                anchors.centerIn: parent
-                                spacing: 6
+                            Text { text: "Notifications"; color: root.colors.fg; font.pixelSize: 11; font.bold: true }
+                            Rectangle { Layout.fillWidth: true; height: 1; color: root.colors.border; opacity: 0.4 }
 
-                                Text {
-                                    text: "󰂚"
-                                    font.family: "Symbols Nerd Font"
-                                    font.pixelSize: 32
-                                    color: root.colors.muted
-                                    opacity: 0.4
-                                    Layout.alignment: Qt.AlignHCenter
-                                }
+                            Item {
+                                Layout.fillWidth: true; Layout.fillHeight: true
 
-                                Text {
-                                    text: "All caught up"
-                                    color: root.colors.muted
-                                    font.pixelSize: 11
-                                    Layout.alignment: Qt.AlignHCenter
+                                ColumnLayout {
+                                    anchors.centerIn: parent; spacing: 4
+                                    Text { text: "󰂚"; font.family: "Symbols Nerd Font"; font.pixelSize: 28; color: root.colors.muted; opacity: 0.35; Layout.alignment: Qt.AlignHCenter }
+                                    Text { text: "All caught up"; color: root.colors.muted; font.pixelSize: 10; Layout.alignment: Qt.AlignHCenter }
                                 }
                             }
                         }
@@ -548,31 +558,40 @@ WlSessionLockSurface {
         }
     }
 
-    // Reusable Bento Card Component
+    // INIT ANIMATION
+    SequentialAnimation {
+        id: initAnim
+        running: true
+
+        // Phase 1: Background + overlay fade in
+        ParallelAnimation {
+            NumberAnimation { target: bg; property: "opacity"; to: 1; duration: 400; easing.type: Easing.OutQuad }
+            NumberAnimation { target: overlay; property: "opacity"; to: 0.45; duration: 400; easing.type: Easing.OutQuad }
+        }
+
+        // Phase 2: Lock box appears with scale + rotation
+        ParallelAnimation {
+            NumberAnimation { target: morphContainer; property: "scale"; from: 0; to: 1; duration: 450; easing.type: Easing.OutBack; easing.overshoot: 1.3 }
+            NumberAnimation { target: morphContainer; property: "rotation"; from: -180; to: 0; duration: 450; easing.type: Easing.OutBack }
+        }
+
+        // Brief pause
+        PauseAnimation { duration: 250 }
+
+        // Phase 3: Expand to bento grid
+        ScriptAction { script: root.expanded = true }
+    }
+
+    // Reusable components
     component BentoCard: Rectangle {
-        id: card
         property color cardColor: "transparent"
         property color borderColor: "gray"
-        property int animDelay: 0
-
-        color: Qt.rgba(cardColor.r, cardColor.g, cardColor.b, 0.85)
-        radius: 20
+        color: Qt.rgba(cardColor.r, cardColor.g, cardColor.b, 0.45)
+        radius: 16
         border.width: 1
         border.color: borderColor
-        opacity: 0
-        transform: Translate { id: cardTranslate; y: 15 }
-
-        SequentialAnimation {
-            running: true
-            PauseAnimation { duration: animDelay }
-            ParallelAnimation {
-                NumberAnimation { target: card; property: "opacity"; to: 1; duration: 350; easing.type: Easing.OutCubic }
-                NumberAnimation { target: cardTranslate; property: "y"; to: 0; duration: 350; easing.type: Easing.OutCubic }
-            }
-        }
     }
 
-    // Reusable Progress Ring Component
     component ProgressRing: Item {
         property real progress: 0.5
         property color ringColor: "white"
@@ -584,29 +603,18 @@ WlSessionLockSurface {
         Canvas {
             anchors.fill: parent
             onPaint: {
-                var ctx = getContext("2d")
-                ctx.reset()
-                var cx = width / 2, cy = height / 2, r = 20, lw = 5
-                ctx.beginPath()
-                ctx.arc(cx, cy, r, 0, 2 * Math.PI)
-                ctx.strokeStyle = Qt.rgba(bgColor.r, bgColor.g, bgColor.b, 0.25)
-                ctx.lineWidth = lw
-                ctx.stroke()
-                ctx.beginPath()
-                ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress))
-                ctx.strokeStyle = ringColor
-                ctx.lineCap = "round"
-                ctx.lineWidth = lw
-                ctx.stroke()
+                var ctx = getContext("2d"); ctx.reset()
+                var cx = width / 2, cy = height / 2, r = 18, lw = 4
+                ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.strokeStyle = Qt.rgba(bgColor.r, bgColor.g, bgColor.b, 0.2); ctx.lineWidth = lw; ctx.stroke()
+                ctx.beginPath(); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress)); ctx.strokeStyle = ringColor; ctx.lineCap = "round"; ctx.lineWidth = lw; ctx.stroke()
             }
             Component.onCompleted: requestPaint()
         }
 
         ColumnLayout {
-            anchors.centerIn: parent
-            spacing: 0
-            Text { text: Math.round(progress * 100) + "%"; color: textColor; font.pixelSize: 10; font.bold: true; Layout.alignment: Qt.AlignHCenter }
-            Text { text: label; color: mutedColor; font.pixelSize: 8; Layout.alignment: Qt.AlignHCenter }
+            anchors.centerIn: parent; spacing: 0
+            Text { text: Math.round(progress * 100) + "%"; color: textColor; font.pixelSize: 9; font.bold: true; Layout.alignment: Qt.AlignHCenter }
+            Text { text: label; color: mutedColor; font.pixelSize: 7; Layout.alignment: Qt.AlignHCenter }
         }
     }
 }
