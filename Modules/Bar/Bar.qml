@@ -418,8 +418,11 @@ Rectangle {
             }
 
             TapHandler {
-                cursorShape: Qt.PointingHandCursor
                 onTapped: globalState.requestSidePanelMenu("wifi")
+            }
+
+            HoverHandler {
+                cursorShape: Qt.PointingHandCursor
             }
 
         }
@@ -457,12 +460,15 @@ Rectangle {
             }
 
             TapHandler {
-                cursorShape: Qt.PointingHandCursor
                 onTapped: {
                     if (volumeService)
                         volumeService.toggleMute();
 
                 }
+            }
+
+            HoverHandler {
+                cursorShape: Qt.PointingHandCursor
             }
             // WheelHandler is separate
 
