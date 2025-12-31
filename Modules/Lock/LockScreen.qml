@@ -55,7 +55,8 @@ WlSessionLockSurface {
         // Blurred window preview background (Default)
         ScreencopyView {
             anchors.fill: parent
-            captureSource: root.screen
+            // Only capture when this view is definitely visible to save resources
+            captureSource: visible ? root.screen : null
             visible: !Config.lockScreenCustomBackground
             layer.enabled: visible && bg.opacity > 0 && !Config.disableLockBlur
 
@@ -64,6 +65,7 @@ WlSessionLockSurface {
                 transparentBorder: true
             }
         }
+
 
         // Wallpaper Background (Custom)
         Image {
@@ -995,7 +997,8 @@ WlSessionLockSurface {
                 width: dotSize
                 height: dotSize
                 radius: dotSize / 2
-                color: isActive ? activeColor : Qt.rgba(activeColor.r, activeColor.g, activeColor.b, 0.2)
+                // Safe color access to prevent crashes if activeColor is somehow invalid
+                color: isActive ? activeColor : (activeColor ? Qt.rgba(activeColor.r, activeColor.g, activeColor.b, 0.2) : "transparent")
 
                 Behavior on color {
                     ColorAnimation { duration: 200 }
