@@ -13,6 +13,7 @@ Singleton {
     property string wallpaperDirectory: Quickshell.env("HOME") + "/Pictures/Wallpapers"
     property bool disableHover: false
     property bool floatingBar: false
+    property string barPosition: "top"
     property var colors: null
     property var openRgbDevices: [0]
     property bool disableLockBlur: false
@@ -36,6 +37,7 @@ Singleton {
         configAdapter.wallpaperDirectory = root.wallpaperDirectory;
         configAdapter.disableHover = root.disableHover;
         configAdapter.floatingBar = root.floatingBar;
+        configAdapter.barPosition = root.barPosition;
         configAdapter.colors = root.colors;
         configAdapter.openRgbDevices = root.openRgbDevices;
         configAdapter.disableLockBlur = root.disableLockBlur;
@@ -58,6 +60,7 @@ Singleton {
     onWallpaperDirectoryChanged: if (!_loading) saveTimer.restart()
     onDisableHoverChanged: if (!_loading) saveTimer.restart()
     onFloatingBarChanged: if (!_loading) saveTimer.restart()
+    onBarPositionChanged: if (!_loading) saveTimer.restart()
     onColorsChanged: if (!_loading) saveTimer.restart()
     onOpenRgbDevicesChanged: if (!_loading) saveTimer.restart()
     onDisableLockBlurChanged: if (!_loading) saveTimer.restart()
@@ -83,6 +86,7 @@ Singleton {
             property string wallpaperDirectory
             property bool disableHover
             property bool floatingBar
+            property string barPosition
             property var colors
             property var openRgbDevices
             property bool disableLockBlur
@@ -99,6 +103,7 @@ Singleton {
                 if (configAdapter.wallpaperDirectory) root.wallpaperDirectory = configAdapter.wallpaperDirectory;
                 if (configAdapter.disableHover !== undefined) root.disableHover = configAdapter.disableHover;
                 if (configAdapter.floatingBar !== undefined) root.floatingBar = configAdapter.floatingBar;
+                if (configAdapter.barPosition) root.barPosition = configAdapter.barPosition;
                 if (configAdapter.colors) root.colors = configAdapter.colors;
                 if (configAdapter.disableLockBlur !== undefined) root.disableLockBlur = configAdapter.disableLockBlur;
                 if (configAdapter.disableLockAnimation !== undefined) root.disableLockAnimation = configAdapter.disableLockAnimation;
