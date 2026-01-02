@@ -336,7 +336,7 @@ Item {
                     }
 
                     Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
+                        Layout.alignment: Qt.AlignHCenter
                         text: {
                             var used = (root.memUsed / 1024 / 1024 / 1024).toFixed(1);
                             var total = (root.memTotal / 1024 / 1024 / 1024).toFixed(1);

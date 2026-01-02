@@ -99,14 +99,14 @@ BentoCard {
                     value: Math.floor(root.seconds / 10)
                     bits: 3
                     dotSize: 14
-                    activeColor: root.colors.tertiary
+                    activeColor: root.colors.teal
                 }
 
                 BinaryColumn {
                     value: root.seconds % 10
                     bits: 4
                     dotSize: 14
-                    activeColor: root.colors.tertiary
+                    activeColor: root.colors.teal
                 }
             }
         }

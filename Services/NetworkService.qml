@@ -17,6 +17,14 @@ Singleton {
     property bool wifiEnabled: true
     readonly property bool scanning: rescanProc.running
 
+    Component.onDestruction: {
+        // Clean up all dynamically created objects before engine shuts down
+        while (networks.length > 0) {
+            var obj = networks.shift();
+            if (obj) obj.destroy();
+        }
+    }
+
     function setWifiEnabled(enabled) {
         const cmd = enabled ? "on" : "off"
         enableWifiProc.command = ["nmcli", "radio", "wifi", cmd]

@@ -154,10 +154,9 @@ PanelWindow {
             anchors.fill: parent
             hoverEnabled: true // Allow hover, but consume clicks
             acceptedButtons: Qt.LeftButton | Qt.RightButton
-            onClicked: mouse.accepted = true
+            onClicked: (mouse) => mouse.accepted = true
         }
 
-        // Ambxst-style elastic highlight
         Rectangle {
             id: navHighlight
 
@@ -312,7 +311,7 @@ PanelWindow {
             anchors.fill: parent
             hoverEnabled: true // Allow hover, but consume clicks
             acceptedButtons: Qt.LeftButton | Qt.RightButton
-            onClicked: mouse.accepted = true
+            onClicked: (mouse) => mouse.accepted = true
         }
 
         Loader {
