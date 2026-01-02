@@ -49,64 +49,6 @@ Singleton {
 
     }
     Component.onCompleted: Logger.debugEnabled = debug
-    onFontFamilyChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onFontSizeChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onWallpaperDirectoryChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onDisableHoverChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onFloatingBarChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onColorsChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onOpenRgbDevicesChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onDisableLockBlurChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onDisableLockAnimationChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-    onLockScreenCustomBackgroundChanged: {
-        if (!_loading) {
-            saveTimer.restart();
-        }
-    }
-
-    Timer {
-        id: saveTimer
-
-        interval: 1000
-        onTriggered: save()
-    }
-
     onFontFamilyChanged: if (!_loading) saveTimer.restart()
     onFontSizeChanged: if (!_loading) saveTimer.restart()
     onWallpaperDirectoryChanged: if (!_loading) saveTimer.restart()
@@ -186,22 +128,6 @@ Singleton {
                 Logger.e("Config", "Failed to apply config: " + e);
             }
             root._loading = false;
-        }
-
-        adapter: JsonAdapter {
-            id: configAdapter
-
-            property string fontFamily
-            property int fontSize
-            property string wallpaperDirectory
-            property bool disableHover
-            property bool floatingBar
-            property var colors
-            property var openRgbDevices
-            property bool disableLockBlur
-            property bool disableLockAnimation
-            property bool lockScreenCustomBackground
-            property bool debug
         }
 
     }
