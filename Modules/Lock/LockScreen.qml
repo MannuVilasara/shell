@@ -202,23 +202,23 @@ WlSessionLockSurface {
                             // BCD Binary display (6 columns)
                             RowLayout {
                                 Layout.alignment: Qt.AlignHCenter
-                                spacing: 6
+                                spacing: 8
 
                                 // Hours (H1: 2 bits, H2: 4 bits)
                                 RowLayout {
-                                    spacing: 4
+                                    spacing: 6
 
                                     BinaryColumn {
                                         value: Math.floor(clockCard.hours / 10)
                                         bits: 2
-                                        dotSize: 10
+                                        dotSize: 14
                                         activeColor: root.colors.accent
                                     }
 
                                     BinaryColumn {
                                         value: clockCard.hours % 10
                                         bits: 4
-                                        dotSize: 10
+                                        dotSize: 14
                                         activeColor: root.colors.accent
                                     }
 
@@ -227,7 +227,7 @@ WlSessionLockSurface {
                                 // Separator
                                 Rectangle {
                                     width: 2
-                                    height: 60
+                                    height: 80
                                     radius: 1
                                     color: root.colors.border
                                     opacity: 0.4
@@ -235,19 +235,19 @@ WlSessionLockSurface {
 
                                 // Minutes (M1: 3 bits, M2: 4 bits)
                                 RowLayout {
-                                    spacing: 4
+                                    spacing: 6
 
                                     BinaryColumn {
                                         value: Math.floor(clockCard.minutes / 10)
                                         bits: 3
-                                        dotSize: 10
+                                        dotSize: 14
                                         activeColor: root.colors.secondary
                                     }
 
                                     BinaryColumn {
                                         value: clockCard.minutes % 10
                                         bits: 4
-                                        dotSize: 10
+                                        dotSize: 14
                                         activeColor: root.colors.secondary
                                     }
 
@@ -256,7 +256,7 @@ WlSessionLockSurface {
                                 // Separator
                                 Rectangle {
                                     width: 2
-                                    height: 60
+                                    height: 80
                                     radius: 1
                                     color: root.colors.border
                                     opacity: 0.4
@@ -264,19 +264,19 @@ WlSessionLockSurface {
 
                                 // Seconds (S1: 3 bits, S2: 4 bits)
                                 RowLayout {
-                                    spacing: 4
+                                    spacing: 6
 
                                     BinaryColumn {
                                         value: Math.floor(clockCard.seconds / 10)
                                         bits: 3
-                                        dotSize: 10
+                                        dotSize: 14
                                         activeColor: root.colors.tertiary
                                     }
 
                                     BinaryColumn {
                                         value: clockCard.seconds % 10
                                         bits: 4
-                                        dotSize: 10
+                                        dotSize: 14
                                         activeColor: root.colors.tertiary
                                     }
 
@@ -287,7 +287,7 @@ WlSessionLockSurface {
                             // Digital time below
                             Text {
                                 text: clockCard.hours.toString().padStart(2, '0') + ":" + clockCard.minutes.toString().padStart(2, '0') + ":" + clockCard.seconds.toString().padStart(2, '0')
-                                font.pixelSize: 16
+                                font.pixelSize: 20
                                 font.weight: Font.Bold
                                 font.family: "JetBrainsMono Nerd Font"
                                 color: root.colors.fg
@@ -297,7 +297,7 @@ WlSessionLockSurface {
                             // Date
                             Text {
                                 text: Qt.formatDate(new Date(), "ddd, MMM d")
-                                font.pixelSize: 11
+                                font.pixelSize: 13
                                 color: root.colors.muted
                                 Layout.alignment: Qt.AlignHCenter
                             }
@@ -308,11 +308,12 @@ WlSessionLockSurface {
 
                     // Music Card
                     BentoCard {
+                        id: musicCard
                         Layout.fillWidth: true
                         Layout.preferredHeight: 130
                         cardColor: root.colors.surface
                         borderColor: root.colors.border
-                        clip: true
+                        layer.enabled: true
 
                         // Blurred album art background
                         Image {
@@ -329,6 +330,14 @@ WlSessionLockSurface {
 
                         }
 
+                        layer.effect: OpacityMask {
+                            maskSource: Rectangle {
+                                width: musicCard.width
+                                height: musicCard.height
+                                radius: 16
+                            }
+                        }
+
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: 12
@@ -339,18 +348,33 @@ WlSessionLockSurface {
                                 spacing: 12
 
                                 // Album art with rounded corners
-                                Rectangle {
+                                Item {
                                     Layout.preferredWidth: 64
                                     Layout.preferredHeight: 64
-                                    radius: 12
-                                    color: Qt.rgba(0, 0, 0, 0.3)
-                                    clip: true
+
+                                    Rectangle {
+                                        id: albumArtMask
+                                        anchors.fill: parent
+                                        radius: 12
+                                        color: Qt.rgba(0, 0, 0, 0.3)
+                                        visible: MprisService.artUrl === ""
+                                    }
 
                                     Image {
                                         anchors.fill: parent
                                         source: MprisService.artUrl
                                         fillMode: Image.PreserveAspectCrop
                                         visible: MprisService.artUrl !== ""
+                                        layer.enabled: true
+                                        layer.effect: OpacityMask {
+                                            maskSource: Rectangle {
+                                                x: 0
+                                                y: 0
+                                                width: 64
+                                                height: 64
+                                                radius: 12
+                                            }
+                                        }
                                     }
 
                                     Text {
