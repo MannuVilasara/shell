@@ -1,4 +1,4 @@
-import "../../../../Services"
+import qs.Services
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -11,6 +11,9 @@ ColumnLayout {
     required property var theme
 
     spacing: 16
+
+    implicitWidth: 320
+    implicitHeight: 480
 
     // --- Main Weather Card ---
     Rectangle {

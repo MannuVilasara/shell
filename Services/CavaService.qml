@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.Core
 pragma Singleton
 
 Singleton {
@@ -58,6 +59,7 @@ Singleton {
         onExited: {
             Logger.i("CavaService", "Exited");
             values = Array(barsCount).fill(0);
+            stdinEnabled = true; // Reset for next run
         }
 
         stdout: SplitParser {
