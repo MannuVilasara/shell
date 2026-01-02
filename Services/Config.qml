@@ -19,6 +19,8 @@ Singleton {
     property bool disableLockBlur: false
     property bool disableLockAnimation: false
     property bool lockScreenCustomBackground: false
+    property bool lazyLoadLockScreen: true
+    property bool shellLoaded: false
     property bool debug: false
     property bool _loading: false
 
@@ -37,6 +39,7 @@ Singleton {
         configAdapter.disableLockBlur = root.disableLockBlur;
         configAdapter.disableLockAnimation = root.disableLockAnimation;
         configAdapter.lockScreenCustomBackground = root.lockScreenCustomBackground;
+        configAdapter.lazyLoadLockScreen = root.lazyLoadLockScreen;
         configAdapter.debug = root.debug;
         configFile.writeAdapter();
         Logger.d("Config", "Settings saved to " + root.configPath);
@@ -60,6 +63,7 @@ Singleton {
     onDisableLockBlurChanged: if (!_loading) saveTimer.restart()
     onDisableLockAnimationChanged: if (!_loading) saveTimer.restart()
     onLockScreenCustomBackgroundChanged: if (!_loading) saveTimer.restart()
+    onLazyLoadLockScreenChanged: if (!_loading) saveTimer.restart()
 
     FileView {
         id: configFile
@@ -86,6 +90,7 @@ Singleton {
             property bool disableLockBlur
             property bool disableLockAnimation
             property bool lockScreenCustomBackground
+            property bool lazyLoadLockScreen
             property bool debug
         }
 
@@ -102,6 +107,7 @@ Singleton {
                 if (configAdapter.disableLockBlur !== undefined) root.disableLockBlur = configAdapter.disableLockBlur;
                 if (configAdapter.disableLockAnimation !== undefined) root.disableLockAnimation = configAdapter.disableLockAnimation;
                 if (configAdapter.lockScreenCustomBackground !== undefined) root.lockScreenCustomBackground = configAdapter.lockScreenCustomBackground;
+                if (configAdapter.lazyLoadLockScreen !== undefined) root.lazyLoadLockScreen = configAdapter.lazyLoadLockScreen;
                 if (configAdapter.debug !== undefined) root.debug = configAdapter.debug;
 
                 if (configAdapter.openRgbDevices !== undefined) {

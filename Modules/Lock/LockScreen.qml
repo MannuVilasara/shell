@@ -22,7 +22,7 @@ WlSessionLockSurface {
     property real expandedHeight: Math.min(height - 80, 480)
     property real collapsedSize: 120
 
-    color: "black"
+    color: "transparent"
 
     // Notifications
     ListModel {
@@ -53,16 +53,16 @@ WlSessionLockSurface {
         anchors.fill: parent
         opacity: Config.disableLockAnimation ? 1 : 0
 
-        // Blurred window preview background (Default)
+        // Blurred window preview background (Default) - matches Caelestia's pattern
         ScreencopyView {
+            id: screencopyBg
             anchors.fill: parent
-            captureSource: !Config.lockScreenCustomBackground ? root.screen : null
+            captureSource: root.screen
             visible: !Config.lockScreenCustomBackground
-            layer.enabled: visible && bg.opacity > 0 && !Config.disableLockBlur
+            layer.enabled: true
 
             layer.effect: FastBlur {
-                radius: 48
-                transparentBorder: true
+                radius: Config.disableLockBlur ? 0 : 48
             }
         }
 
@@ -72,10 +72,10 @@ WlSessionLockSurface {
             source: Config.lockScreenCustomBackground ? ("file://" + WallpaperService.getWallpaper(root.screen.name)) : ""
             fillMode: Image.PreserveAspectCrop
             visible: Config.lockScreenCustomBackground
-            layer.enabled: visible && bg.opacity > 0 && !Config.disableLockBlur
+            layer.enabled: visible
 
             layer.effect: FastBlur {
-                radius: 48
+                radius: Config.disableLockBlur ? 0 : 64
                 transparentBorder: true
             }
         }
