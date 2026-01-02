@@ -1,7 +1,6 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.Core
 pragma Singleton
 
 Singleton {
@@ -137,5 +136,11 @@ Singleton {
         }
 
     }
+    Timer {
+        id: saveTimer
 
+        interval: 1000
+        repeat: false
+        onTriggered: root.save()
+    }
 }

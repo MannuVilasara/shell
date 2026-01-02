@@ -31,7 +31,7 @@ Rectangle {
         Rectangle {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 40
-            color: theme ? theme.tile : "#2F333D"
+            color: (theme && theme.tile) ? theme.tile : "#2F333D"
             radius: 8
             Layout.alignment: Qt.AlignTop
 
@@ -107,7 +107,7 @@ Rectangle {
             Layout.preferredWidth: 24
             Layout.preferredHeight: 24
             Layout.alignment: Qt.AlignTop
-            color: closeArea.containsMouse ? (theme ? theme.tile : "#2F333D") : "transparent"
+            color: closeArea.containsMouse ? ((theme && theme.tile) ? theme.tile : "#2F333D") : "transparent"
             radius: 12
 
             Text {

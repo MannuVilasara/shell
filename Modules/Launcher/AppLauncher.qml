@@ -1,4 +1,5 @@
 import QtQuick
+import Qt5Compat.GraphicalEffects
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
@@ -52,7 +53,7 @@ PanelWindow {
         command: ["cat", root.usageFilePath]
         running: false
         onExited: (code, status) => {
-            if (code === 0 && stdout.trim()) {
+            if (code === 0 && stdout && stdout.trim()) {
                 try {
                     root.usageCounts = JSON.parse(stdout);
                 } catch (e) {
@@ -171,12 +172,12 @@ PanelWindow {
         clip: true
         layer.enabled: true
 
-        layer.effect: Qt.createComponent("Qt5Compat.GraphicalEffects", "DropShadow").createObject(mainContainer, {
-            transparentBorder: true,
-            radius: 24,
-            samples: 25,
+        layer.effect: DropShadow {
+            transparentBorder: true
+            radius: 24
+            samples: 25
             color: "#50000000"
-        })
+        }
 
         // Search header
         Rectangle {

@@ -238,7 +238,7 @@ Rectangle {
                     Image {
                         anchors.fill: parent
                         anchors.margins: 2
-                        source: MprisService.artUrl !== "" ? MprisService.artUrl : "../../Assets/icon.png" // Fallback
+                        source: MprisService.artUrl !== "" ? MprisService.artUrl : "../../Assets/arch.svg" // Fallback
                         fillMode: Image.PreserveAspectCrop
                         layer.enabled: true
                         layer.effect: OpacityMask {
@@ -269,7 +269,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 12
                 
-                opacity: componentsOpacity
+                opacity: mediaWidget.componentsOpacity
                 visible: opacity > 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 

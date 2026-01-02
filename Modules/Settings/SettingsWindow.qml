@@ -24,8 +24,8 @@ FloatingWindow {
             context.appState.settingsOpen = false;
 
     }
-    width: windowWidth
-    height: windowHeight
+    implicitWidth: windowWidth
+    implicitHeight: windowHeight
     // Title for hyprland/window rules
     // Quickshell FloatingWindow title property:
     title: "Settings"
