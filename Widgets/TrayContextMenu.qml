@@ -29,14 +29,16 @@ PanelWindow {
         let width = 240; 
         let estimatedHeight = 300;
         
-        // Smart bounds checking
-        let safeX = Math.min(x, Screen.width - width - 16);
-        let safeY = Math.min(y, Screen.height - estimatedHeight - 16);
-        safeX = Math.max(16, safeX); 
-        safeY = Math.max(16, safeY);
+        // Position menu to align with the bar (no gap)
+        // Center the menu under the clicked icon
+        let safeX = x - (width / 2);
+        
+        // Ensure menu stays within screen bounds
+        safeX = Math.max(8, Math.min(safeX, Screen.width - width - 8));
+        let safeY = y; // Use exact Y position (no gap)
 
         menuX = safeX;
-        menuY = safeY;
+        menuY = safeY-33;
         
         visible = true;
         isOpen = true;
@@ -81,41 +83,43 @@ PanelWindow {
         id: menuContainer
         
         x: root.menuX
-        y: root.menuY
+        y: root.menuY - 1  // Move up 1px to overlap and stick to bar
         width: 240
         height: menuBox.height
         
-        // Transform from the top-left (cursor position usually)
-        transformOrigin: Item.TopLeft
+        // Transform from the top center (where it connects to bar)
+        transformOrigin: Item.Top
         
         // Snappy Entrance Animation
-        scale: root.isOpen ? 1.0 : 0.6
+        scale: root.isOpen ? 1.0 : 0.85
         opacity: root.isOpen ? 1.0 : 0.0
         
         Behavior on scale { 
-            NumberAnimation { duration: 350; easing.type: Easing.OutBack; easing.overshoot: 1.4 } 
+            NumberAnimation { duration: 250; easing.type: Easing.OutCubic } 
         }
         Behavior on opacity { 
             NumberAnimation { duration: 200; easing.type: Easing.OutQuad } 
         }
 
-        // Deep Shadow
+        // Shadow only on bottom and sides (not top)
         Rectangle {
             id: shadowSource
             anchors.fill: menuBox
+            anchors.topMargin: 8
             anchors.margins: 4
-            radius: 16
+            radius: 12
             color: "black"
             visible: false
         }
         
         DropShadow {
             anchors.fill: menuBox
+            anchors.topMargin: 8
             source: shadowSource
-            color: Qt.rgba(0, 0, 0, 0.4)
-            radius: 24
-            samples: 32
-            verticalOffset: 8
+            color: Qt.rgba(0, 0, 0, 0.3)
+            radius: 16
+            samples: 24
+            verticalOffset: 2
             transparentBorder: true
         }
 
@@ -127,12 +131,42 @@ PanelWindow {
             
             // Clean, minimal background
             color: Qt.rgba(root.colors.bg.r, root.colors.bg.g, root.colors.bg.b, 0.95)
-            radius: 16
-            clip: true
+            radius: 0 // No radius - will be applied selectively
+            clip: false
             
-            // Subtle border
-            border.width: 1
-            border.color: root.colors.border
+            // Only round bottom corners to stick to bar at top
+            Rectangle {
+                anchors.fill: parent
+                color: parent.color
+                radius: 12
+                
+                // Cut off top half to make top edge flat
+                Rectangle {
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: parent.radius
+                    color: parent.color
+                }
+            }
+            
+            // Border - only on sides and bottom
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.width: 1
+                border.color: root.colors.border
+                radius: 12
+                
+                // Cover top border
+                Rectangle {
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: 2
+                    color: Qt.rgba(root.colors.bg.r, root.colors.bg.g, root.colors.bg.b, 0.95)
+                }
+            }
 
             QsMenuOpener {
                 id: opener
