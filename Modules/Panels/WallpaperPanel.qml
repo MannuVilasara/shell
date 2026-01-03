@@ -102,7 +102,7 @@ PanelWindow {
         id: slideContainer
         
         height: 260
-        width: parent.width * 0.8
+        width: parent.width * 0.5
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
         
@@ -151,7 +151,7 @@ PanelWindow {
                 color: Qt.rgba(theme.bg.r, theme.bg.g, theme.bg.b, 0.98)
                 radius: 20
                 
-                // Cover bottom corners
+                // Cover bottom corners to make them square
                 Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
@@ -169,12 +169,12 @@ PanelWindow {
                 border.width: 1
                 border.color: Qt.rgba(theme.accent.r, theme.accent.g, theme.accent.b, 0.25)
                 
-                // Hide bottom border
+                // Hide bottom border completely
                 Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: 2
+                    height: 3
                     color: Qt.rgba(theme.bg.r, theme.bg.g, theme.bg.b, 0.98)
                 }
             }
@@ -188,8 +188,12 @@ PanelWindow {
                 anchors.bottomMargin: 20
                 
                 orientation: ListView.Horizontal
-                spacing: 20
+                spacing: 4
                 clip: true
+                topMargin: 4
+                bottomMargin: 4
+                leftMargin: 4
+                rightMargin: 4
                 
                 model: wallpapersList
                 
@@ -206,6 +210,18 @@ PanelWindow {
                 
                 flickableDirection: Flickable.HorizontalFlick
                 boundsBehavior: Flickable.StopAtBounds
+                
+                // Enter key to set wallpaper
+                Keys.onReturnPressed: {
+                    if (currentItem && wallpapersList[currentIndex]) {
+                        WallpaperService.changeWallpaper(wallpapersList[currentIndex], undefined);
+                    }
+                }
+                Keys.onEnterPressed: {
+                    if (currentItem && wallpapersList[currentIndex]) {
+                        WallpaperService.changeWallpaper(wallpapersList[currentIndex], undefined);
+                    }
+                }
                 
                 // Highlight indicator
                 highlight: Rectangle {
@@ -228,12 +244,17 @@ PanelWindow {
                     property bool isCurrent: ListView.isCurrentItem
                     
                     width: wallpaperListView.itemWidth
-                    height: 180
+                    height: wallpaperListView.height - 8  // Full height minus padding
                     
                     // Thumbnail Card
                     Rectangle {
                         id: card
-                        anchors.fill: parent
+                        anchors.centerIn: parent
+                        
+                        // Center item gets full width, side items get 70% width, all get full height
+                        width: isCurrent ? parent.width : parent.width * 0.70
+                        height: parent.height
+                        
                         radius: 16
                         color: theme.bg
                         
@@ -242,9 +263,15 @@ PanelWindow {
                         
                         Behavior on border.width { NumberAnimation { duration: 200 } }
                         Behavior on border.color { ColorAnimation { duration: 200 } }
+                        Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                        Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                         
                         scale: isHovered ? 1.05 : 1.0
                         Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                        
+                        // Reduce opacity for side wallpapers
+                        opacity: isCurrent ? 1.0 : 0.65
+                        Behavior on opacity { NumberAnimation { duration: 300 } }
                         
                         // Wallpaper Image
                         Image {
