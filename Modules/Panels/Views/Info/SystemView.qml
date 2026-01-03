@@ -15,437 +15,424 @@ Item {
     property real memTotal: 0
     property real diskUsage: 0
     property real diskFree: 0
-    property var cpuHistory: []
-    property int maxHistory: 40
-    property int updateTick: 0
 
     implicitWidth: 440
-    implicitHeight: 420
+    implicitHeight: 360
 
-    Timer {
-        interval: 500
-        running: true
-        repeat: true
-        onTriggered: {
-            cpuHistory.push(cpuUsage);
-            if (cpuHistory.length > maxHistory)
-                cpuHistory.shift();
+    // --- Helpers ---
+    function alpha(col, val) {
+        if (!col) return "transparent";
+        return Qt.rgba(col.r, col.g, col.b, val);
+    }
 
-            cpuHistoryChanged();
-            updateTick++;
+    function formatBytes(bytes) {
+        if (bytes > 1099511627776) return (bytes / 1099511627776).toFixed(1) + " TB";
+        if (bytes > 1073741824) return (bytes / 1073741824).toFixed(1) + " GB";
+        if (bytes > 1048576) return (bytes / 1048576).toFixed(0) + " MB";
+        return bytes + " B";
+    }
+
+    // Main Container Background (Glass Cockpit Feel)
+    Rectangle {
+        anchors.fill: parent
+        radius: 32
+        color: root.alpha(theme.bg, 0.4)
+        border.width: 1
+        border.color: root.alpha(theme.fg, 0.08)
+        
+        // Inner "Shadow" for depth
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            radius: 31
+            color: "transparent"
+            border.width: 1
+            border.color: Qt.rgba(0,0,0, 0.2)
+            z: 1
         }
     }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 16
-        spacing: 16
+        anchors.margins: 24
+        spacing: 20
 
-        Text {
-            text: "System Monitor"
-            font.bold: true
-            font.pixelSize: 20
-            color: theme.fg
-            Layout.leftMargin: 4
-            opacity: 0.9
+        // --- Header ---
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 12
+            
+            Rectangle {
+                width: 4; height: 16
+                color: theme.accent
+                radius: 2
+            }
+
+            Text {
+                text: "SYSTEM TELEMETRY"
+                font.bold: true
+                font.pixelSize: 12
+                font.letterSpacing: 2
+                color: root.alpha(theme.fg, 0.6)
+            }
+            
+            Item { Layout.fillWidth: true }
         }
 
-        Rectangle {
+        // --- Gauges Grid ---
+        GridLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 200
-            radius: 16
-            color: Qt.rgba(0, 0, 0, 0.3)
-            border.color: Qt.rgba(1, 1, 1, 0.1)
-            border.width: 1
-            clip: true
+            Layout.fillHeight: true
+            columns: 2
+            rowSpacing: 20
+            columnSpacing: 20
 
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 0
+            // --- CPU GAUGE ---
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: 180
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 40
-                    Layout.margins: 16
+                // Card Background
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 24
+                    color: root.alpha(theme.fg, 0.03)
+                    border.width: 1
+                    border.color: root.alpha(theme.fg, 0.05)
+                }
 
-                    Item {
-                        Layout.preferredWidth: 24
-                        Layout.preferredHeight: 24
+                // Gauge Component
+                Item {
+                    anchors.centerIn: parent
+                    width: 140; height: 140
 
-                        Text {
-                            anchors.centerIn: parent
-                            text: "󰻠"
-                            font.family: "Symbols Nerd Font"
-                            color: theme.urgent
-                            font.pixelSize: 20
+                    // Scale Ticks (The "Watch Face")
+                    Repeater {
+                        model: 30 // Ticks count
+                        Item {
+                            anchors.fill: parent
+                            rotation: -135 + (index * (270 / 29)) // 270 degree arc
+                            
+                            Rectangle {
+                                anchors.top: parent.top
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: index % 5 === 0 ? 2 : 1
+                                height: index % 5 === 0 ? 10 : 6
+                                color: index % 5 === 0 ? root.alpha(theme.fg, 0.5) : root.alpha(theme.fg, 0.2)
+                                radius: 1
+                            }
+                        }
+                    }
+
+                    // Active Arc
+                    Shape {
+                        anchors.fill: parent
+                        layer.enabled: true
+                        layer.samples: 4
+                        
+                        ShapePath {
+                            strokeColor: "transparent"
+                            fillColor: "transparent"
+                            
+                            // We use a conical gradient stroke simulated via another item or just solid for now for performance
+                            // Let's use a solid stroke with glow
                         }
 
+                        // The "Progress" Arc
+                        ShapePath {
+                            strokeColor: theme.urgent
+                            strokeWidth: 6
+                            fillColor: "transparent"
+                            capStyle: ShapePath.RoundCap
+                            
+                            PathAngleArc {
+                                centerX: 70; centerY: 70
+                                radiusX: 58; radiusY: 58
+                                startAngle: -135
+                                sweepAngle: 270 * (root.cpuUsage / 100)
+                                
+                                Behavior on sweepAngle { NumberAnimation { duration: 400; easing.type: Easing.OutQuad } }
+                            }
+                        }
                     }
 
-                    Text {
-                        text: "CPU"
-                        color: theme.fg
-                        font.bold: true
-                        font.pixelSize: 14
-                        opacity: 0.8
+                    // Glow effect behind the arc
+                    Shape {
+                        anchors.fill: parent
+                        opacity: 0.3
+                        layer.enabled: true
+                        layer.samples: 4
+                        
+                        ShapePath {
+                            strokeColor: theme.urgent
+                            strokeWidth: 12 // Thicker for glow
+                            fillColor: "transparent"
+                            capStyle: ShapePath.RoundCap
+                            
+                            PathAngleArc {
+                                centerX: 70; centerY: 70
+                                radiusX: 58; radiusY: 58
+                                startAngle: -135
+                                sweepAngle: 270 * (root.cpuUsage / 100)
+                                Behavior on sweepAngle { NumberAnimation { duration: 400; easing.type: Easing.OutQuad } }
+                            }
+                        }
                     }
 
-                    Item {
-                        Layout.fillWidth: true
-                    }
+                    // Center Data
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: 2
+                        
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "CPU"
+                            font.pixelSize: 11
+                            font.letterSpacing: 1
+                            color: root.alpha(theme.fg, 0.5)
+                            font.bold: true
+                        }
 
-                    Text {
-                        text: Math.round(root.cpuUsage) + "%"
-                        color: theme.fg
-                        font.bold: true
-                        font.pixelSize: 24
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: Math.round(root.cpuUsage)
+                            font.pixelSize: 32
+                            font.bold: true
+                            color: theme.fg
+                            
+                            Text {
+                                anchors.left: parent.right
+                                anchors.baseline: parent.baseline
+                                anchors.leftMargin: 2
+                                text: "%"
+                                font.pixelSize: 14
+                                color: root.alpha(theme.fg, 0.5)
+                            }
+                        }
                     }
+                }
+            }
 
+            // --- RAM GAUGE ---
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: 180
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 24
+                    color: root.alpha(theme.fg, 0.03)
+                    border.width: 1
+                    border.color: root.alpha(theme.fg, 0.05)
                 }
 
                 Item {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
+                    anchors.centerIn: parent
+                    width: 140; height: 140
 
+                    // Scale Ticks
+                    Repeater {
+                        model: 30
+                        Item {
+                            anchors.fill: parent
+                            rotation: -135 + (index * (270 / 29))
+                            
+                            Rectangle {
+                                anchors.top: parent.top
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                width: index % 5 === 0 ? 2 : 1
+                                height: index % 5 === 0 ? 10 : 6
+                                color: index % 5 === 0 ? root.alpha(theme.fg, 0.5) : root.alpha(theme.fg, 0.2)
+                                radius: 1
+                            }
+                        }
+                    }
+
+                    // Active Arc
                     Shape {
-                        id: cpuGraph
-
                         anchors.fill: parent
-                        anchors.bottomMargin: 8
                         layer.enabled: true
                         layer.samples: 4
 
                         ShapePath {
-                            strokeWidth: 1
-                            strokeColor: Qt.rgba(1, 1, 1, 0.05)
-                            fillColor: "transparent"
-                            strokeStyle: ShapePath.DashLine
-                            dashPattern: [4, 4]
-                            startX: 0
-                            startY: cpuGraph.height * 0.25
-
-                            PathLine {
-                                x: cpuGraph.width
-                                y: cpuGraph.height * 0.25
-                            }
-
-                            PathMove {
-                                x: 0
-                                y: cpuGraph.height * 0.5
-                            }
-
-                            PathLine {
-                                x: cpuGraph.width
-                                y: cpuGraph.height * 0.5
-                            }
-
-                            PathMove {
-                                x: 0
-                                y: cpuGraph.height * 0.75
-                            }
-
-                            PathLine {
-                                x: cpuGraph.width
-                                y: cpuGraph.height * 0.75
-                            }
-
-                        }
-
-                        ShapePath {
-                            strokeWidth: 0
-                            strokeColor: "transparent"
-                            startX: 0
-                            startY: cpuGraph.height
-
-                            PathPolyline {
-                                path: {
-                                    var _ = root.updateTick;
-                                    var p = [];
-                                    var w = cpuGraph.width;
-                                    var h = cpuGraph.height;
-                                    if (w <= 0 || h <= 0)
-                                        return [];
-
-                                    var step = w / (Math.max(2, maxHistory - 1));
-                                    for (var i = 0; i < cpuHistory.length; i++) {
-                                        var x = i * step;
-                                        var val = cpuHistory[i];
-                                        var y = h - (val / 100 * h);
-                                        p.push(Qt.point(x, y));
-                                    }
-                                    if (p.length > 0) {
-                                        p.push(Qt.point((cpuHistory.length - 1) * step, h));
-                                        p.push(Qt.point(0, h));
-                                    }
-                                    return p;
-                                }
-                            }
-
-                            fillGradient: LinearGradient {
-                                x1: 0
-                                y1: 0
-                                x2: 0
-                                y2: cpuGraph.height
-
-                                GradientStop {
-                                    position: 0
-                                    color: Qt.rgba(theme.urgent.r, theme.urgent.g, theme.urgent.b, 0.5)
-                                }
-
-                                GradientStop {
-                                    position: 1
-                                    color: "transparent"
-                                }
-
-                            }
-
-                        }
-
-                        ShapePath {
-                            strokeWidth: 3
-                            strokeColor: theme.urgent
+                            strokeColor: theme.accent
+                            strokeWidth: 6
                             fillColor: "transparent"
                             capStyle: ShapePath.RoundCap
-                            joinStyle: ShapePath.RoundJoin
-                            startX: 0
-                            startY: cpuGraph.height
-
-                            PathPolyline {
-                                path: {
-                                    var _ = root.updateTick;
-                                    var p = [];
-                                    var w = cpuGraph.width;
-                                    var h = cpuGraph.height;
-                                    if (w <= 0 || h <= 0)
-                                        return [];
-
-                                    var step = w / (Math.max(2, maxHistory - 1));
-                                    for (var i = 0; i < cpuHistory.length; i++) {
-                                        var x = i * step;
-                                        var val = cpuHistory[i];
-                                        var y = h - (val / 100 * h);
-                                        p.push(Qt.point(x, y));
-                                    }
-                                    return p;
-                                }
+                            
+                            PathAngleArc {
+                                centerX: 70; centerY: 70
+                                radiusX: 58; radiusY: 58
+                                startAngle: -135
+                                sweepAngle: 270 * (root.memUsage / 100)
+                                Behavior on sweepAngle { NumberAnimation { duration: 400; easing.type: Easing.OutQuad } }
                             }
-
                         }
-
+                    }
+                    
+                    // Glow
+                    Shape {
+                        anchors.fill: parent
+                        opacity: 0.3
+                        layer.enabled: true
+                        layer.samples: 4
+                        
+                        ShapePath {
+                            strokeColor: theme.accent
+                            strokeWidth: 12
+                            fillColor: "transparent"
+                            capStyle: ShapePath.RoundCap
+                            
+                            PathAngleArc {
+                                centerX: 70; centerY: 70
+                                radiusX: 58; radiusY: 58
+                                startAngle: -135
+                                sweepAngle: 270 * (root.memUsage / 100)
+                                Behavior on sweepAngle { NumberAnimation { duration: 400; easing.type: Easing.OutQuad } }
+                            }
+                        }
                     }
 
-                }
-
-            }
-
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 160
-            spacing: 16
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                radius: 16
-                color: Qt.rgba(0, 0, 0, 0.3)
-                border.color: Qt.rgba(1, 1, 1, 0.1)
-                border.width: 1
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 0
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
+                    // Center Data
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: 2
+                        
                         Text {
+                            Layout.alignment: Qt.AlignHCenter
                             text: "RAM"
-                            color: theme.fg
+                            font.pixelSize: 11
+                            font.letterSpacing: 1
+                            color: root.alpha(theme.fg, 0.5)
                             font.bold: true
-                            font.pixelSize: 14
-                            opacity: 0.8
                         }
-
-                        Item {
-                            Layout.fillWidth: true
-                        }
-
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-
-                        Shape {
-                            anchors.centerIn: parent
-                            width: 100
-                            height: 100
-
-                            ShapePath {
-                                strokeWidth: 10
-                                strokeColor: Qt.rgba(1, 1, 1, 0.1)
-                                fillColor: "transparent"
-                                capStyle: ShapePath.RoundCap
-
-                                PathAngleArc {
-                                    centerX: 50
-                                    centerY: 50
-                                    radiusX: 45
-                                    radiusY: 45
-                                    startAngle: 135
-                                    sweepAngle: 270
-                                }
-
-                            }
-
-                            ShapePath {
-                                strokeWidth: 10
-                                strokeColor: theme.accent
-                                fillColor: "transparent"
-                                capStyle: ShapePath.RoundCap
-
-                                PathAngleArc {
-                                    centerX: 50
-                                    centerY: 50
-                                    radiusX: 45
-                                    radiusY: 45
-                                    startAngle: 135
-                                    sweepAngle: 270 * (root.memUsage / 100)
-                                }
-
-                            }
-
-                        }
-
-                        Column {
-                            anchors.centerIn: parent
-
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: Math.round(root.memUsage) + "%"
-                                color: theme.fg
-                                font.bold: true
-                                font.pixelSize: 20
-                            }
-
-                        }
-
-                    }
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: {
-                            var used = (root.memUsed / 1024 / 1024 / 1024).toFixed(1);
-                            var total = (root.memTotal / 1024 / 1024 / 1024).toFixed(1);
-                            return used + " / " + total + " GB";
-                        }
-                        color: theme.subtext
-                        font.pixelSize: 12
-                    }
-
-                }
-
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                radius: 16
-                color: Qt.rgba(0, 0, 0, 0.3)
-                border.color: Qt.rgba(1, 1, 1, 0.1)
-                border.width: 1
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 0
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
 
                         Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: Math.round(root.memUsage)
+                            font.pixelSize: 32
+                            font.bold: true
+                            color: theme.fg
+                            
+                            Text {
+                                anchors.left: parent.right
+                                anchors.baseline: parent.baseline
+                                anchors.leftMargin: 2
+                                text: "%"
+                                font.pixelSize: 14
+                                color: root.alpha(theme.fg, 0.5)
+                            }
+                        }
+                    }
+                    
+                    // Small "Used" text at bottom of gauge
+                     Text {
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottomMargin: 20
+                        text: root.formatBytes(root.memUsed)
+                        font.pixelSize: 10
+                        color: root.alpha(theme.fg, 0.4)
+                    }
+                }
+            }
+
+            // --- STORAGE RACK ---
+            Item {
+                Layout.columnSpan: 2
+                Layout.fillWidth: true
+                Layout.preferredHeight: 80
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 20
+                    color: root.alpha(theme.fg, 0.03)
+                    border.width: 1
+                    border.color: root.alpha(theme.fg, 0.05)
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 20
+
+                    // Icon Module
+                    Rectangle {
+                        width: 44; height: 44
+                        radius: 12
+                        color: root.alpha(theme.green, 0.1)
+                        border.width: 1
+                        border.color: root.alpha(theme.green, 0.2)
+                        
+                        Text {
+                            anchors.centerIn: parent
                             text: "󰋊"
                             font.family: "Symbols Nerd Font"
+                            font.pixelSize: 20
                             color: theme.green
-                            font.pixelSize: 16
                         }
+                    }
 
-                        Text {
-                            text: "Disk"
-                            color: theme.fg
-                            font.bold: true
-                            font.pixelSize: 14
-                            opacity: 0.8
-                        }
+                    // Segmented Bar Display
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
 
-                        Item {
+                        RowLayout {
                             Layout.fillWidth: true
-                        }
-
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-
-                        ColumnLayout {
-                            anchors.centerIn: parent
-                            spacing: 4
-
                             Text {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: "Free Space"
-                                color: theme.fg
-                                opacity: 0.5
-                                font.pixelSize: 12
-                            }
-
-                            Text {
-                                Layout.alignment: Qt.AlignHCenter
-                                text: {
-                                    var val = root.diskFree;
-                                    if (val > 1024 * 1024 * 1024 * 1024)
-                                        return (val / (1024 * 1024 * 1024 * 1024)).toFixed(1) + " TB";
-
-                                    if (val > 1024 * 1024 * 1024)
-                                        return (val / (1024 * 1024 * 1024)).toFixed(1) + " GB";
-
-                                    return (val / (1024 * 1024)).toFixed(0) + " MB";
-                                }
-                                color: theme.fg
-                                font.pixelSize: 24
+                                text: "PRIMARY DRIVE"
                                 font.bold: true
+                                font.pixelSize: 11
+                                font.letterSpacing: 1
+                                color: root.alpha(theme.fg, 0.7)
                             }
-
+                            Item { Layout.fillWidth: true }
+                            Text {
+                                text: root.formatBytes(root.diskFree) + " FREE"
+                                font.bold: true
+                                font.pixelSize: 11
+                                font.letterSpacing: 1
+                                color: root.alpha(theme.fg, 0.5)
+                            }
                         }
 
-                    }
+                        // Segmented Progress Bar
+                        Row {
+                            Layout.fillWidth: true
+                            height: 12
+                            spacing: 3
+                            
+                            // Calculate number of active segments (20 total segments)
+                            property int totalSegs: 24
+                            property int activeSegs: Math.round((root.diskUsage / 100) * totalSegs)
 
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 8
-                        radius: 4
-                        color: Qt.rgba(1, 1, 1, 0.1)
-
-                        Rectangle {
-                            height: parent.height
-                            width: parent.width * (root.diskUsage / 100)
-                            radius: 4
-                            color: theme.green
+                            Repeater {
+                                model: parent.totalSegs
+                                Rectangle {
+                                    width: (parent.width - (parent.spacing * (parent.totalSegs - 1))) / parent.totalSegs
+                                    height: parent.height
+                                    radius: 2
+                                    color: index < parent.activeSegs ? theme.green : root.alpha(theme.fg, 0.1)
+                                    opacity: index < parent.activeSegs ? 1.0 : 0.5
+                                    
+                                    // Add glow to active segments
+                                    Rectangle {
+                                        anchors.fill: parent
+                                        radius: 2
+                                        color: theme.green
+                                        opacity: index < parent.activeSegs ? 0.4 : 0
+                                        visible: index < parent.activeSegs
+                                        border.width: 0
+                                    }
+                                }
+                            }
                         }
-
                     }
-
                 }
-
             }
-
         }
-
     }
-
 }
