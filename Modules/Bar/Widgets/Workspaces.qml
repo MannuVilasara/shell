@@ -37,7 +37,43 @@ Rectangle {
     radius: height / 2
     clip: true
 
-    /* ---------- HYPRLAND ICON LOGIC ---------- */
+    property var workspaceOccupied: []
+    property var occupiedRanges: []
+
+    function updateWorkspaceOccupied() {
+        workspaceOccupied = Array.from(
+            { length: numWorkspaces },
+            (_, i) => HyprlandData.isWorkspaceOccupied(i + 1)
+        )
+
+        const ranges = []
+        let start = -1
+
+        for (let i = 0; i < workspaceOccupied.length; i++) {
+            if (workspaceOccupied[i]) {
+                if (start === -1)
+                    start = i
+            } else if (start !== -1) {
+                if (i - 1 > start)
+                    ranges.push({ start, end: i - 1 })
+                start = -1
+            }
+        }
+
+        if (start !== -1 && workspaceOccupied.length - 1 > start)
+            ranges.push({ start, end: workspaceOccupied.length - 1 })
+
+        occupiedRanges = ranges
+    }
+
+    Component.onCompleted: updateWorkspaceOccupied()
+
+    Connections {
+        target: Hyprland
+        function onWindowListChanged() {
+            updateWorkspaceOccupied()
+        }
+    }
 
     function resolveIcon(className) {
         if (!className || className.length === 0)
@@ -92,6 +128,30 @@ Rectangle {
         anchors.fill: parent
         opacity: isSpecialOpen ? 0 : 1
 
+        Item {
+            visible: !isNiri
+            id: occupiedStretchLayer
+            anchors.centerIn: wsRow
+            width: wsRow.width
+            height: 26
+            z: 0
+
+            Repeater {
+                model: occupiedRanges
+
+                Rectangle {
+                    height: 26
+                    radius: 14
+                    color: Qt.rgba(1, 1, 1, 0.2)
+                    opacity: 0.8
+
+                    x: modelData.start * (26 + wsRow.spacing)
+                    width: (modelData.end - modelData.start + 1) * 26
+                        + (modelData.end - modelData.start) * wsRow.spacing
+                }
+            }
+        }
+
         Rectangle {
             id: highlight
 
@@ -134,6 +194,7 @@ Rectangle {
 
 
         Row {
+            id: wsRow
             anchors.fill: parent
             anchors.leftMargin: 2
             anchors.rightMargin: 2
