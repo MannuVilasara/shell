@@ -14,7 +14,9 @@ BentoCard {
 
     cardColor: "#1e1e2e"
     borderColor: inputField.activeFocus ? root.colors.accent : root.colors.border
-
+    transform: Translate {
+        id: shakeTransform
+    }
     Timer {
         id: cursorTimer
 
@@ -199,28 +201,31 @@ BentoCard {
 
         loops: 3
 
-        PropertyAnimation {
-            target: root
+        NumberAnimation {
+            target: shakeTransform
             property: "x"
-            from: root.x
-            to: root.x + 8
-            duration: 40
+            from: 0
+            to: 10
+            duration: 50
+            easing.type: Easing.InOutQuad
         }
 
-        PropertyAnimation {
-            target: root
+        NumberAnimation {
+            target: shakeTransform
             property: "x"
-            from: root.x + 8
-            to: root.x - 8
-            duration: 40
+            from: 10
+            to: -10
+            duration: 50
+            easing.type: Easing.InOutQuad
         }
 
-        PropertyAnimation {
-            target: root
+        NumberAnimation {
+            target: shakeTransform
             property: "x"
-            from: root.x - 8
-            to: root.x
-            duration: 40
+            from: -10
+            to: 0
+            duration: 50
+            easing.type: Easing.InOutQuad
         }
 
     }

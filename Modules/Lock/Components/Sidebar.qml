@@ -28,9 +28,6 @@ BentoCard {
                 "icon": "󰜉",
                 "cmd": "systemctl reboot"
             }, {
-                "icon": "󰌾",
-                "cmd": "loginctl lock-session"
-            }, {
                 "icon": "󰗽",
                 "cmd": "loginctl terminate-user $USER"
             }]
