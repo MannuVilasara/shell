@@ -112,17 +112,31 @@ Rectangle {
     }
 
     function changeWorkspaceRelative(delta) {
-        if (isNiri)
+        if (isNiri) {
             compositor.changeWorkspaceRelative(delta)
-        else
-            HyprlandData.dispatch("workspace " + delta)
+        } else {
+            const current = HyprlandData.focusedWorkspaceId
+            const target = current + delta
+
+            // Clamp to valid range (1..numWorkspaces)
+            if (target >= 1 && target <= numWorkspaces) {
+                HyprlandData.dispatch("workspace " + target)
+            }
+        }
     }
+
 
     MouseArea {
         anchors.fill: parent
-        onWheel: wheel =>
-            changeWorkspaceRelative(wheel.angleDelta.y > 0 ? -1 : 1)
+
+        onWheel: wheel => {
+            // Determine number of "steps" to move
+            const step = wheel.angleDelta.y / 120  // 120 is standard delta for one notch
+            if (step !== 0)
+                changeWorkspaceRelative(-step)  // negative because scrolling up should go left
+        }
     }
+
 
     Item {
         anchors.fill: parent
@@ -266,8 +280,23 @@ Rectangle {
         height: 26
         radius: 13
         color: colors.accent
+
         scale: isSpecialOpen ? 1 : 0.5
         opacity: isSpecialOpen ? 1 : 0
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: Animations.fast
+                easing.type: Animations.standardEasing
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Animations.fast
+                easing.type: Animations.standardEasing
+            }
+        }
 
         Icon {
             anchors.centerIn: parent
@@ -277,4 +306,5 @@ Rectangle {
             font.bold: true
         }
     }
+
 }

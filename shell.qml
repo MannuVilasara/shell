@@ -22,9 +22,9 @@ ShellRoot {
         context: ctx
     }
 
-    ScreenCorners {
-        context: ctx
-    }
+//    ScreenCorners {
+  //      context: ctx
+   // }
 
     Overlays {
         context: ctx
