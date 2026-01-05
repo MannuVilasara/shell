@@ -86,9 +86,9 @@ Item {
         anchors.centerIn: parent
         width: root.expanded ? root.expandedWidth : root.collapsedSize
         height: root.expanded ? root.expandedHeight : root.collapsedSize
-        color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.9)
+        color: root.expanded ? "transparent" : Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.9)
         radius: root.expanded ? 20 : 30
-        border.width: root.expanded ? 0 : 2
+        border.width: 0
         border.color: root.colors.accent
         scale: Config.disableLockAnimation ? 1 : 0
         rotation: Config.disableLockAnimation ? 0 : -180
@@ -123,14 +123,14 @@ Item {
 
         }
 
-        Text {
+        Image {
             anchors.centerIn: parent
-            text: "󰌾"
-            font.family: "Symbols Nerd Font"
-            font.pixelSize: 48
-            color: root.colors.accent
+            source: SvgIcons.logo
+            sourceSize.width: 64
+            sourceSize.height: 64
             opacity: root.expanded ? 0 : 1
             scale: root.expanded ? 0.5 : 1
+            fillMode: Image.PreserveAspectFit
 
             Behavior on opacity {
                 enabled: !Config.disableLockAnimation

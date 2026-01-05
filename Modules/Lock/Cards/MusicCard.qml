@@ -76,8 +76,7 @@ BentoCard {
                 radius: 12
                 color: Qt.rgba(0, 0, 0, 0.2)
                 visible: MprisService.artUrl === ""
-                border.width: 1
-                border.color: root.colors.border
+                border.width: 0
 
                 Text {
                     anchors.centerIn: parent

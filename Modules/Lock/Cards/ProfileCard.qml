@@ -36,7 +36,7 @@ BentoCard {
                         else if (source.toString().endsWith("/.face.icon"))
                             source = "/var/lib/AccountsService/icons/" + Quickshell.env("USER");
                         else
-                            source = "../../Assets/logo.svg";
+                            source = SvgIcons.logo
                     }
                 }
 

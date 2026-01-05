@@ -8,6 +8,6 @@ Rectangle {
 
     color: Qt.rgba(0.1, 0.1, 0.1, 0.9) // Force dark background opacity
     radius: 16
-    border.width: 1
+    border.width: 0
     border.color: borderColor
 }

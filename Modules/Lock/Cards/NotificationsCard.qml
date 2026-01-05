@@ -93,8 +93,7 @@ BentoCard {
                     height: 50
                     radius: 8
                     color: Qt.rgba(root.colors.surface.r, root.colors.surface.g, root.colors.surface.b, 0.8)
-                    border.width: 1
-                    border.color: Qt.rgba(root.colors.border.r, root.colors.border.g, root.colors.border.b, 0.3)
+                    border.width: 0
 
                     RowLayout {
                         anchors.fill: parent
