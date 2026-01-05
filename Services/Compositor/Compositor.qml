@@ -13,7 +13,10 @@ Item {
     property var workspaces: loader.item ? loader.item.workspaces : []
     property bool isSpecialOpen: (detectedCompositor === "hyprland") && loader.item ? loader.item.isSpecialOpen : false
     property string detectedCompositor: "hyprland"
+    property int workspaceCount: loader.item ? loader.item.workspaceCount : 10
 
+    property var windowList: loader.item ? loader.item.windowList : []
+    
     function changeWorkspace(id) {
         if (loader.item)
             loader.item.changeWorkspace(id);
@@ -24,6 +27,18 @@ Item {
         if (loader.item)
             loader.item.changeWorkspaceRelative(delta);
 
+    }
+
+    function isWorkspaceOccupied(id) {
+        if (loader.item && loader.item.isWorkspaceOccupied)
+            return loader.item.isWorkspaceOccupied(id);
+        return false;
+    }
+
+    function focusedWindowForWorkspace(id) {
+        if (loader.item && loader.item.focusedWindowForWorkspace)
+            return loader.item.focusedWindowForWorkspace(id);
+        return null;
     }
 
     Process {
@@ -58,79 +73,211 @@ Item {
         id: hyprlandComponent
 
         Item {
-            property string title: ""
-            property bool isFullscreen: false
-            property string layout: "Tiled"
-            property int activeWorkspace: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
+            id: hyprlandRoot
+
+            property string title: activeToplevel?.title ?? ""
+            property bool isFullscreen: activeToplevel?.fullscreen ?? false
+            property string layout: "Tiled" // simplified
+            property int activeWorkspace: focusedWorkspaceId
             property var workspaces: Hyprland.workspaces.values
-            property bool isSpecialOpen: Hyprland.focusedMonitor && Hyprland.focusedMonitor.lastIpcObject.specialWorkspace.name !== ""
+            property bool isSpecialOpen: {
+                 if (!focusedMonitor || !monitorsInfo) return false
+                 const m = monitorsInfo.find(m => m.id === focusedMonitor.id)
+                 return m && m.specialWorkspace && m.specialWorkspace.name !== ""
+            }
+            property int workspaceCount: {
+                let max = 5
+                for (let i = 0; i < workspaces.length; i++) {
+                    if (workspaces[i].id > max) max = workspaces[i].id
+                }
+                return max
+            }
+
+            readonly property var toplevels: Hyprland.toplevels
+            readonly property var monitors: Hyprland.monitors
+            readonly property var activeToplevel: Hyprland.focusedWindow 
+            readonly property var focusedWorkspace: Hyprland.focusedWorkspace
+            readonly property var focusedMonitor: Hyprland.focusedMonitor
+            readonly property int focusedWorkspaceId: focusedWorkspace?.id ?? 1
+
+            property var windowList: []
+            property var windowByAddress: ({})
+            property var addresses: []
+            property var layers: ({})
+            property var monitorsInfo: []
+            property var workspacesInfo: []
+            property var workspaceById: ({})
+            property var workspaceIds: []
+            property var activeWorkspaceInfo: null
+            property string keyboardLayout: "?"
 
             function changeWorkspace(id) {
+                if (id === focusedWorkspaceId) return
                 Hyprland.dispatch("workspace " + id);
             }
 
             function changeWorkspaceRelative(delta) {
-                let cmd = delta > 0 ? "workspace +1" : "workspace -1";
-                Hyprland.dispatch(cmd);
+                
+                
+                let target = focusedWorkspaceId + delta
+                if (target < 1) target = 1
+                
+                if (target === focusedWorkspaceId) return
+                
+                Hyprland.dispatch("workspace " + target) 
             }
 
-            Connections {
-                function onRawEvent(event) {
-                    const n = event.name;
-                    if (["activespecial", "focusedmon", "workspace", "moveworkspace", "createworkspace", "destroyworkspace"].includes(n))
-                        Hyprland.refreshMonitors();
+            function focusedWindowForWorkspace(workspaceId) {
+                const wsWindows = windowList.filter(w => w.workspace.id === workspaceId);
+                if (wsWindows.length === 0) return null;
 
-                }
+                return wsWindows.reduce((best, win) => {
+                    const bestFocus = best?.focusHistoryID ?? Infinity;
+                    const winFocus = win?.focusHistoryID ?? Infinity;
+                    return winFocus < bestFocus ? win : best;
+                }, null);
+            }
 
-                target: Hyprland
+            function isWorkspaceOccupied(id) {
+                return Hyprland.workspaces.values.find((w) => {
+                    return w?.id === id
+                })?.lastIpcObject.windows > 0 || false
+            }
+
+            function updateAll() {
+                getClients.running = true
+                getLayers.running = true
+                getMonitors.running = true
+                getWorkspaces.running = true
+                getActiveWorkspace.running = true
+            }
+
+            function refreshKeyboardLayout() {
+                hyprctlDevices.running = true
             }
 
             Process {
-                id: windowProc
-
-                command: ["sh", "-c", "hyprctl activewindow -j | jq -c --argjson activeWs $(hyprctl monitors -j | jq '.[] | select(.focused) | .activeWorkspace.id') '{win: ., activeWs: $activeWs}'"]
-
-                stdout: SplitParser {
-                    onRead: (data) => {
-                        if (!data || !data.trim())
-                            return ;
-
+                id: hyprctlDevices
+                command: ["hyprctl", "devices", "-j"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
                         try {
-                            const parsed = JSON.parse(data.trim());
-                            const win = parsed.win;
-                            const activeWs = parsed.activeWs;
-                            if (win && win.workspace && activeWs && win.workspace.id === activeWs) {
-                                title = win.title || "~";
-                                isFullscreen = (win.fullscreen > 0);
-                                if (win.floating)
-                                    layout = "Floating";
-                                else if (win.fullscreen > 0)
-                                    layout = "Fullscreen";
-                                else
-                                    layout = "Tiled";
+                            const devices = JSON.parse(this.text)
+                            const keyboard = devices.keyboards.find(k => k.main) || devices.keyboards[0]
+                            if (keyboard && keyboard.active_keymap) {
+                                hyprlandRoot.keyboardLayout = keyboard.active_keymap.toUpperCase().slice(0, 2)
                             } else {
-                                title = "~";
-                                isFullscreen = false;
-                                layout = "Tiled";
+                                hyprlandRoot.keyboardLayout = "?"
                             }
-                        } catch (e) {
-                            console.warn("Failed to parse active window data:", e);
-                            title = "";
-                            isFullscreen = false;
-                            layout = "Tiled";
+                        } catch (err) {
+                            console.error("Failed to parse keyboard layout:", err)
+                            hyprlandRoot.keyboardLayout = "?"
                         }
                     }
                 }
-
             }
 
-            Timer {
-                interval: 200
-                running: true
-                repeat: true
-                onTriggered: windowProc.running = true
+            Process {
+                id: getClients
+                command: ["hyprctl", "clients", "-j"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        try {
+                            hyprlandRoot.windowList = JSON.parse(this.text)
+                            let tempWinByAddress = {}
+                            for (let win of hyprlandRoot.windowList) tempWinByAddress[win.address] = win
+                            hyprlandRoot.windowByAddress = tempWinByAddress
+                            hyprlandRoot.addresses = hyprlandRoot.windowList.map(w => w.address)
+                        } catch (e) {
+                            console.error("Failed to parse clients:", e)
+                        }
+                    }
+                }
             }
 
+            Process {
+                id: getMonitors
+                command: ["hyprctl", "monitors", "-j"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        try {
+                            hyprlandRoot.monitorsInfo = JSON.parse(this.text)
+                        } catch (e) {
+                            console.error("Failed to parse monitors:", e)
+                        }
+                    }
+                }
+            }
+
+            Process {
+                id: getLayers
+                command: ["hyprctl", "layers", "-j"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        try {
+                            hyprlandRoot.layers = JSON.parse(this.text)
+                        } catch (e) {
+                            console.error("Failed to parse layers:", e)
+                        }
+                    }
+                }
+            }
+
+            Process {
+                id: getWorkspaces
+                command: ["hyprctl", "workspaces", "-j"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        try {
+                            hyprlandRoot.workspacesInfo = JSON.parse(this.text)
+                            let map = {}
+                            for (let ws of hyprlandRoot.workspacesInfo) map[ws.id] = ws
+                            hyprlandRoot.workspaceById = map
+                            hyprlandRoot.workspaceIds = hyprlandRoot.workspacesInfo.map(ws => ws.id)
+                        } catch (e) {
+                            console.error("Failed to parse workspaces:", e)
+                        }
+                    }
+                }
+            }
+
+            Process {
+                id: getActiveWorkspace
+                command: ["hyprctl", "activeworkspace", "-j"]
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        try {
+                            hyprlandRoot.activeWorkspaceInfo = JSON.parse(this.text)
+                        } catch (e) {
+                            console.error("Failed to parse active workspace:", e)
+                        }
+                    }
+                }
+            }
+
+            Connections {
+                target: Hyprland
+                function onRawEvent(event) {
+                    if (event.name.endsWith("v2"))
+                        return
+
+                    if (event.name.includes("activelayout"))
+                        refreshKeyboardLayout()
+                    else if (event.name.includes("mon"))
+                        Hyprland.refreshMonitors()
+                    else if (event.name.includes("workspace") || event.name.includes("window"))
+                        Hyprland.refreshWorkspaces()
+                    else
+                        Hyprland.refreshToplevels()
+
+                    updateAll()
+                }
+            }
+
+            Component.onCompleted: {
+                updateAll()
+                refreshKeyboardLayout()
+            }
         }
 
     }
@@ -197,8 +344,6 @@ Item {
                 workspaceCache = {
                 };
                 for (const ws of workspacesData) {
-                    // Mannu uses 1-based index usually
-                    // Keep internal ID
 
                     const wsData = {
                         "id": (ws.idx !== undefined ? ws.idx + 1 : ws.id),

@@ -24,6 +24,7 @@ Singleton {
     property bool debug: false
     property bool _loading: false
     property bool hideWorkspaceNumbers: false
+    property bool hideAppIcons: false
 
     function save() {
         if (_loading)
@@ -36,6 +37,7 @@ Singleton {
         configAdapter.floatingBar = root.floatingBar;
         configAdapter.barPosition = root.barPosition;
         configAdapter.hideWorkspaceNumbers = root.hideWorkspaceNumbers;
+        configAdapter.hideAppIcons = root.hideAppIcons;
         configAdapter.colors = root.colors;
         configAdapter.openRgbDevices = root.openRgbDevices;
         configAdapter.disableLockBlur = root.disableLockBlur;
@@ -55,6 +57,11 @@ Singleton {
 
     }
     onHideWorkspaceNumbersChanged: {
+        if (!_loading)
+            saveTimer.restart();
+
+    }
+    onHideAppIconsChanged: {
         if (!_loading)
             saveTimer.restart();
 
@@ -142,6 +149,9 @@ Singleton {
                 if (configAdapter.hideWorkspaceNumbers !== undefined)
                     root.hideWorkspaceNumbers = configAdapter.hideWorkspaceNumbers;
 
+                if (configAdapter.hideAppIcons !== undefined)
+                    root.hideAppIcons = configAdapter.hideAppIcons;
+
                 if (configAdapter.fontFamily)
                     root.fontFamily = configAdapter.fontFamily;
 
@@ -225,6 +235,7 @@ Singleton {
             property bool lazyLoadLockScreen
             property bool debug
             property bool hideWorkspaceNumbers
+            property bool hideAppIcons
         }
 
     }
