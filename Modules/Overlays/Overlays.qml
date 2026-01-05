@@ -15,6 +15,8 @@ Item {
 
     NotificationManager {
         id: notifManager
+
+        globalState: root.context.appState
     }
 
     NotificationToast {

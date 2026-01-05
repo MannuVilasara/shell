@@ -90,6 +90,24 @@ Item {
         }
     }
 
+    property bool ready: false
+
+    property var globalState: null // Injected global state
+
+    Timer {
+        interval: 3000
+        running: true
+        onTriggered: root.ready = true
+    }
+
+    Connections {
+        target: root.globalState
+        function onIsLockedChanged() {
+            root.activeNotifications.clear();
+            root.popupVisible = false;
+        }
+    }
+
     NotificationServer {
         id: server
 
@@ -112,12 +130,14 @@ Item {
                 "expireTime": Date.now() + 5000
             };
             root.notifications.insert(0, entry);
-            root.activeNotifications.insert(0, entry);
-            Logger.d("NotifMan", "Notification added:", notification.summary, "ID:", uniqueId, "Stack count:", root.activeNotifications.count);
-            root.popupVisible = true;
-            popupTimer.restart(); // Ensure timer is running
+            
+            var isLocked = root.globalState ? root.globalState.isLocked : false
+            if (root.ready && !isLocked) {
+                root.activeNotifications.insert(0, entry);
+                root.popupVisible = true;
+                popupTimer.restart(); // Ensure timer is running
+            }
             notification.closed.connect(() => {
-                Logger.d("NotifMan", "Notification closed signal received for ID:", uniqueId);
                 root.removeSilent(uniqueId);
             });
         }

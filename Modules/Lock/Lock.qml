@@ -15,6 +15,12 @@ Item {
         onSuccess: lock.locked = false
     }
 
+    Binding {
+        target: root.context.appState
+        property: "isLocked"
+        value: lock.locked
+    }
+
     WlSessionLock {
         id: lock
 

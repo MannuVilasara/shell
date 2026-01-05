@@ -10,6 +10,7 @@ QtObject {
     property bool powerMenuOpen: false
     property bool infoPanelOpen: false
     property bool settingsOpen: false
+    property bool isLocked: false
 
     signal requestSidePanelMenu(string menu)
     signal requestInfoPanelTab(int tabIndex)
