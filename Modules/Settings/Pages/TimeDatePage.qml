@@ -94,7 +94,6 @@ ColumnLayout {
             popup: Popup {
                 y: tzCombo.height + 4
                 width: tzCombo.width
-                // Limit height to prevent taking up whole screen
                 height: Math.min(contentItem.implicitHeight, 300)
                 padding: 4
 

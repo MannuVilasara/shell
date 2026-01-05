@@ -9,7 +9,6 @@ Item {
     property string currentSystemZone: ""
     property bool isLoading: true
 
-    // --- Public API ---
 
     function setTimeZone(zone) {
         if (zone && zone !== currentSystemZone) {
@@ -26,9 +25,7 @@ Item {
         }
     }
 
-    // --- Internal Processes ---
-
-    // 1. List Zones - Use shell to output everything at once
+    
     Process {
         id: listZonesProc
         command: ["sh", "-c", "timedatectl list-timezones"]
@@ -54,7 +51,7 @@ Item {
         }
     }
 
-    // 2. Get Current Zone
+
     Process {
         id: getZoneProc
         command: ["sh", "-c", "timedatectl show --property=Timezone --value"]
@@ -69,7 +66,7 @@ Item {
         }
     }
 
-    // 3. Set Zone
+
     Process {
         id: setZoneProc
         property string targetZone: ""
@@ -78,10 +75,9 @@ Item {
         
         onExited: (code) => {
             if (code === 0) {
-                // Update the current zone immediately
+
                 root.currentSystemZone = targetZone
             }
-            // Refresh to confirm
             getZoneProc.running = true
         }
     }
