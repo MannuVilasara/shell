@@ -14,9 +14,7 @@ BentoCard {
 
     cardColor: "#1e1e2e"
     borderColor: inputField.activeFocus ? root.colors.accent : root.colors.border
-    transform: Translate {
-        id: shakeTransform
-    }
+
     Timer {
         id: cursorTimer
 
@@ -228,6 +226,10 @@ BentoCard {
             easing.type: Easing.InOutQuad
         }
 
+    }
+
+    transform: Translate {
+        id: shakeTransform
     }
 
 }

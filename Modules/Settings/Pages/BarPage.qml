@@ -48,6 +48,22 @@ ColumnLayout {
         }
     }
 
+    ToggleButton {
+        Layout.fillWidth: true
+        label: "App Icons"
+        sublabel: "Show application icons on workspace"
+        icon: "󰅶" // Generic icon
+        active: !Config.hideAppIcons
+        enabled: Config.hideWorkspaceNumbers
+        opacity: enabled ? 1 : 0.5
+        colors: context.colors
+        onActiveChanged: {
+            if (active !== !Config.hideAppIcons)
+                Config.hideAppIcons = !active;
+
+        }
+    }
+
     SettingItem {
         label: "Bar Position"
         sublabel: "Choose where the bar appears on screen"
