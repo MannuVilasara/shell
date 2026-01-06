@@ -76,7 +76,7 @@ Item {
             id: hyprlandRoot
 
             property string title: activeToplevel?.title ?? ""
-            property bool isFullscreen: activeToplevel?.fullscreen ?? false
+            property bool isFullscreen: activeToplevel?.fullscreen || (windowList && windowList.some(w => w.workspace.id === focusedWorkspaceId && w.fullscreen))
             property string layout: "Tiled" // simplified
             property int activeWorkspace: focusedWorkspaceId
             property var workspaces: Hyprland.workspaces.values
