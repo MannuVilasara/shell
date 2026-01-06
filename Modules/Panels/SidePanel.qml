@@ -260,7 +260,7 @@ PanelWindow {
 
         Behavior on x {
             NumberAnimation {
-                duration: 250
+                duration: 400
                 easing.type: Easing.OutBack
                 easing.overshoot: 0.8
             }
@@ -268,7 +268,7 @@ PanelWindow {
 
         Behavior on height {
              NumberAnimation {
-                duration: 250
+                duration: 400
                 easing.type: Easing.OutBack
                 easing.overshoot: 0.8
             }
@@ -343,7 +343,7 @@ PanelWindow {
 
         Behavior on x {
              NumberAnimation {
-                duration: 250
+                duration: 400
                 easing.type: Easing.OutBack
                 easing.overshoot: 0.8
             }
@@ -351,7 +351,7 @@ PanelWindow {
 
         Behavior on height {
              NumberAnimation {
-                duration: 250
+                duration: 400
                 easing.type: Easing.OutBack
                 easing.overshoot: 0.8
             }
