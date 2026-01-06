@@ -15,14 +15,61 @@ Singleton {
     property double position: 0
     property double length: activePlayer ? activePlayer.length : 0
 
+    property var _players: Mpris.players.values
+    property int playerCount: _players.length
+    property var playerList: {
+        let list = [];
+        for (let p of _players) {
+            list.push({
+                "identity": p.identity || p.desktopEntry || "Unknown",
+                "desktopEntry": p.desktopEntry || "",
+                "player": p
+            });
+        }
+        return list;
+    }
+    property string currentPlayerName: activePlayer ? (activePlayer.identity || activePlayer.desktopEntry || "Unknown") : ""
+    property bool manualSelection: false
+
     function setPosition(pos) {
         if (activePlayer)
             activePlayer.position = pos;
+    }
 
+    function selectPlayer(player) {
+        if (player) {
+            instance.activePlayer = player;
+            manualSelection = true;
+        }
+    }
+
+    function selectNextPlayer() {
+        const players = Mpris.players.values;
+        if (players.length <= 1) return;
+        const currentIndex = players.indexOf(activePlayer);
+        const nextIndex = (currentIndex + 1) % players.length;
+        selectPlayer(players[nextIndex]);
+    }
+
+    function selectPreviousPlayer() {
+        const players = Mpris.players.values;
+        if (players.length <= 1) return;
+        const currentIndex = players.indexOf(activePlayer);
+        const prevIndex = (currentIndex - 1 + players.length) % players.length;
+        selectPlayer(players[prevIndex]);
     }
 
     function updateActivePlayer() {
         const players = Mpris.players.values;
+        
+        if (manualSelection && instance.activePlayer && players.includes(instance.activePlayer)) {
+            return;
+        }
+        
+        if (manualSelection && instance.activePlayer && !players.includes(instance.activePlayer)) {
+            manualSelection = false;
+        }
+        
         const playing = players.find((p) => {
             return p.playbackState === MprisPlaybackState.Playing;
         });
@@ -31,7 +78,6 @@ Singleton {
         } else if (players.length > 0) {
             if (!instance.activePlayer || !players.includes(instance.activePlayer))
                 instance.activePlayer = players[0];
-
         } else {
             instance.activePlayer = null;
         }
@@ -40,19 +86,16 @@ Singleton {
     function playPause() {
         if (activePlayer && activePlayer.canTogglePlaying)
             activePlayer.togglePlaying();
-
     }
 
     function next() {
         if (activePlayer && activePlayer.canGoNext)
             activePlayer.next();
-
     }
 
     function previous() {
         if (activePlayer && activePlayer.canGoPrevious)
             activePlayer.previous();
-
     }
 
     Component.onCompleted: updateActivePlayer()
@@ -72,12 +115,12 @@ Singleton {
             updateActivePlayer();
             if (activePlayer)
                 root.position = activePlayer.position;
-
         }
     }
 
     Connections {
         function onValuesChanged() {
+            root._players = Mpris.players.values;
             updateActivePlayer();
         }
 

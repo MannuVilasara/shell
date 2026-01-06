@@ -31,19 +31,79 @@ Item {
         border.color: theme.border
         layer.enabled: true
 
+        Rectangle {
+            id: playerSelector
+            anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 12
+            z: 10
+            visible: MprisService.playerCount > 1
+            width: playerNameLabel.implicitWidth + 24
+            height: 26
+            radius: 13
+            color: Qt.rgba(1, 1, 1, 0.2)
+            scale: 1
+
+            Behavior on width {
+                NumberAnimation {
+                    duration: 200
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 100
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            Text {
+                id: playerNameLabel
+                anchors.centerIn: parent
+                text: MprisService.currentPlayerName
+                font.pixelSize: 11
+                font.bold: true
+                color: "white"
+                opacity: 1
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 150
+                    }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onPressed: playerSelector.scale = 0.9
+                onReleased: playerSelector.scale = 1
+                onClicked: MprisService.selectNextPlayer()
+            }
+        }
+
         Image {
             id: albumArt
-
             anchors.fill: parent
             source: MprisService.artUrl
             fillMode: Image.PreserveAspectCrop
-            visible: status === Image.Ready
+            opacity: status === Image.Ready ? 1 : 0
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 400
+                    easing.type: Easing.InOutQuad
+                }
+            }
         }
 
         LinearGradient {
             anchors.fill: parent
             start: Qt.point(0, 0)
             end: Qt.point(0, parent.height)
+            z: 2
 
             gradient: Gradient {
                 GradientStop {
@@ -66,14 +126,14 @@ Item {
         }
 
         Item {
-            property var cavaValues: CavaService.values
+            id: visualizerContainer
 
             anchors.bottom: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottomMargin: 0
             width: parent.width
-            height: parent.height * 0.5 // Cover bottom half
-            z: 0
+            height: parent.height * 0.5
+            z: 3
 
             Binding {
                 target: CavaService
@@ -89,16 +149,21 @@ Item {
 
                 Repeater {
                     id: visualizerRepeater
-
-                    model: 32 // Increase bars for better look
+                    model: 32
 
                     Rectangle {
-                        property var val: CavaService.values[index] || 0
+                        required property int index
+                        property real val: {
+                            var vals = CavaService.values;
+                            if (!vals || vals.length === 0 || index >= vals.length)
+                                return 0;
+                            return vals[index] || 0;
+                        }
 
                         width: 6
                         height: 10 + (val * 50)
                         anchors.bottom: parent.bottom
-                        color: theme.accent
+                        color: root.theme.accent
                         opacity: 0.6
                         radius: 3
 
@@ -106,21 +171,16 @@ Item {
                             NumberAnimation {
                                 duration: 60
                             }
-
                         }
-
                     }
-
                 }
-
             }
-
         }
 
         ColumnLayout {
             id: contentColumn
 
-            z: 1
+            z: 4
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: 60 // Move down a bit
@@ -277,11 +337,19 @@ Item {
                             width: {
                                 var len = MprisService.length > 0 ? MprisService.length : 1;
                                 var pos = (progressContainer.seeking || progressContainer.seekingCooldown) ? progressContainer.seekValue : MprisService.position;
-                                return (pos / len) * parent.width;
+                                var w = (pos / len) * parent.width;
+                                return Math.max(0, Math.min(w, parent.width));
                             }
                             height: parent.height
                             radius: 3
-                            color: theme.accent
+                            color: root.theme.accent
+
+                            Behavior on width {
+                                NumberAnimation {
+                                    duration: 200
+                                    easing.type: Easing.OutCubic
+                                }
+                            }
                         }
 
                     }
@@ -292,13 +360,21 @@ Item {
                         x: {
                             var len = MprisService.length > 0 ? MprisService.length : 1;
                             var pos = (progressContainer.seeking || progressContainer.seekingCooldown) ? progressContainer.seekValue : MprisService.position;
-                            return (pos / len) * (parent.width - width);
+                            var xPos = (pos / len) * (parent.width - width);
+                            return Math.max(0, Math.min(xPos, parent.width - width));
                         }
                         anchors.verticalCenter: parent.verticalCenter
                         width: 12
                         height: 24
                         radius: 6
-                        color: theme.accent
+                        color: root.theme.accent
+
+                        Behavior on x {
+                            NumberAnimation {
+                                duration: 200
+                                easing.type: Easing.OutCubic
+                            }
+                        }
                     }
 
                     Timer {
