@@ -45,19 +45,29 @@ ColumnLayout {
             Layout.preferredWidth: 240
             Layout.fillWidth: true
             
-            model: context.timezone.timeZones
+            property var filteredTimeZones: {
+                if (!context.timezone.timeZones) return [];
+                if (searchField.text === "") return context.timezone.timeZones;
+                
+                var searchText = searchField.text.toLowerCase();
+                return context.timezone.timeZones.filter(function(tz) {
+                    return tz.toLowerCase().indexOf(searchText) !== -1;
+                });
+            }
+            
+            model: filteredTimeZones
             
             currentIndex: {
                 if (context.timezone.currentSystemZone === "" || count === 0)
                     return -1;
-                return context.timezone.timeZones.indexOf(context.timezone.currentSystemZone);
+                return filteredTimeZones.indexOf(context.timezone.currentSystemZone);
             }
 
             font.family: Config.fontFamily
             font.pixelSize: 14
             
             onActivated: {
-                var selected = model[currentIndex];
+                var selected = filteredTimeZones[currentIndex];
                 if (selected && selected !== context.timezone.currentSystemZone) {
                     context.timezone.setTimeZone(selected);
                 }
@@ -94,23 +104,75 @@ ColumnLayout {
             popup: Popup {
                 y: tzCombo.height + 4
                 width: tzCombo.width
-                height: Math.min(contentItem.implicitHeight, 300)
-                padding: 4
+                height: Math.min(contentItem.implicitHeight + searchField.height + 128, 340)
+                padding: 8
 
-                contentItem: ListView {
-                    clip: true
-                    implicitHeight: contentHeight
-                    model: tzCombo.popup.visible ? tzCombo.delegateModel : null
-                    currentIndex: tzCombo.highlightedIndex
+                onOpened: {
+                    searchField.text = "";
+                    searchField.forceActiveFocus();
+                }
 
-                    ScrollBar.vertical: ScrollBar {
-                        active: true
-                        policy: ScrollBar.AsNeeded
-                        width: 6
-                        contentItem: Rectangle {
-                            implicitWidth: 6
-                            radius: 3
-                            color: colors.accent
+                contentItem: ColumnLayout {
+                    spacing: 8
+
+                    TextField {
+                        id: searchField
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 36
+                        
+                        placeholderText: "Search time zones..."
+                        font.family: Config.fontFamily
+                        font.pixelSize: 14
+                        color: colors.fg
+
+                        background: Rectangle {
+                            color: Qt.rgba(0, 0, 0, 0.2)
+                            border.color: searchField.activeFocus ? colors.accent : colors.border
+                            border.width: searchField.activeFocus ? 2 : 1
+                            radius: 6
+                        }
+
+                        leftPadding: 36
+
+                        Text {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 10
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: ""
+                            font.family: "Symbols Nerd Font"
+                            font.pixelSize: 16
+                            color: colors.fg
+                            opacity: 0.5
+                        }
+                    }
+
+                    ListView {
+                        id: timeZoneList
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        model: tzCombo.popup.visible ? tzCombo.delegateModel : null
+                        currentIndex: tzCombo.highlightedIndex
+
+                        ScrollBar.vertical: ScrollBar {
+                            active: true
+                            policy: ScrollBar.AsNeeded
+                            width: 6
+                            contentItem: Rectangle {
+                                implicitWidth: 6
+                                radius: 3
+                                color: colors.accent
+                                opacity: 0.5
+                            }
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            visible: timeZoneList.count === 0 && searchField.text !== ""
+                            text: "No time zones found"
+                            font.family: Config.fontFamily
+                            font.pixelSize: 14
+                            color: colors.fg
                             opacity: 0.5
                         }
                     }
@@ -125,7 +187,7 @@ ColumnLayout {
             }
 
             delegate: ItemDelegate {
-                width: tzCombo.width - 8
+                width: tzCombo.width - 24
                 implicitHeight: 36
                 highlighted: tzCombo.highlightedIndex === index
 
