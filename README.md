@@ -16,6 +16,17 @@
   <video src="https://github.com/user-attachments/assets/1e8849fb-2d56-490b-a943-14fed7ddbcb0" width="100%" />
 </div>
 
+## Requirements
+
+- **QuickShell**: Ideally the latest git version.
+- **Fonts**:
+  - `Symbols Nerd Font`
+  - `JetBrainsMono Nerd Font`
+- **Dependencies**:
+  - `python` (for some scripts)
+  - `imagemagick` (required for generating wallpaper thumbnails)
+- **Icons**: An icon theme (e.g., Papirus) is recommended for window icons to appear correctly.
+
 ## Installation
 
 ### User Install
