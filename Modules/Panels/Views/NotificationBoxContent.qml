@@ -124,7 +124,7 @@ ColumnLayout {
             
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "󰂛" // Bell slash
+                text: "󰂛" 
                 font.family: "Symbols Nerd Font"
                 font.pixelSize: 32
                 color: theme.disabled || "#4C4F5A"
@@ -140,7 +140,7 @@ ColumnLayout {
 
         delegate: NotificationItem {
             width: ListView.view.width
-            notifId: model.id
+            notifId: model.notifId 
             summary: model.summary || ""
             body: model.body || ""
             image: model.image || ""
