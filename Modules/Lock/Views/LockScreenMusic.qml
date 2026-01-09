@@ -1,9 +1,3 @@
-// DESIGN CONCEPT: "Split Precision v2 - Tight Center"
-// LAYOUT: 50/50 Split with content gravitation towards center.
-// - Left: Album Art anchored Right (towards center).
-// - Right: Dashboard anchored Left (towards center).
-// - Bottom: Anchored Password Card (Lifted).
-
 import "../Cards"
 import "../Components"
 import Qt5Compat.GraphicalEffects
@@ -21,25 +15,21 @@ Item {
     required property var pam
     property alias inputField: musicPwd.inputField
 
-    // --- State Helpers ---
     property bool hasMedia: MprisService.title !== ""
     property bool isPlaying: MprisService.isPlaying
 
-    // --- Entrance Animations ---
+
     SequentialAnimation {
         id: entryAnim
         running: true
         
-        // 1. Background fade
         NumberAnimation { target: backgroundLayer; property: "opacity"; from: 0; to: 1; duration: 800; easing.type: Easing.OutQuad }
         
-        // 2. Elements slide in
+
         ParallelAnimation {
-            // Art pops
             NumberAnimation { target: artWrapper; property: "scale"; from: 0.8; to: 1; duration: 600; easing.type: Easing.OutBack }
             NumberAnimation { target: artWrapper; property: "opacity"; from: 0; to: 1; duration: 400; easing.type: Easing.OutQuad }
             
-            // Dashboard slides up
             SequentialAnimation {
                 PauseAnimation { duration: 150 }
                 ParallelAnimation {
@@ -48,7 +38,7 @@ Item {
                 }
             }
             
-            // Footer slides up
+        
             SequentialAnimation {
                 PauseAnimation { duration: 300 }
                 NumberAnimation { target: footer; property: "anchors.bottomMargin"; from: -50; to: 60; duration: 600; easing.type: Easing.OutCubic }
@@ -57,7 +47,7 @@ Item {
         }
     }
 
-    // --- Background Layer ---
+
     Item {
         id: backgroundLayer
         anchors.fill: parent
@@ -81,7 +71,7 @@ Item {
             color: "#050505"
         }
 
-        // Fallback Wallpaper
+
         Image {
             anchors.fill: parent
             source: Config.lockScreenCustomBackground ? ("file://" + WallpaperService.getWallpaper(Quickshell.screens[0].name)) : ""
@@ -90,7 +80,6 @@ Item {
             opacity: 0.5
         }
 
-        // Crossfading Art
         Image { id: bgImg1; anchors.fill: parent; fillMode: Image.PreserveAspectCrop; visible: opacity > 0; asynchronous: true }
         Image { id: bgImg2; anchors.fill: parent; fillMode: Image.PreserveAspectCrop; visible: opacity > 0; opacity: 0; asynchronous: true }
 
@@ -111,8 +100,6 @@ Item {
             radius: 90
             transparentBorder: false
         }
-
-        // Dark Vignette
         Rectangle {
             anchors.fill: parent
             color: "transparent"
@@ -123,7 +110,7 @@ Item {
         }
     }
 
-    // --- Main Layout Container ---
+
     Item {
         anchors.top: parent.top
         anchors.left: parent.left
@@ -134,7 +121,7 @@ Item {
             anchors.fill: parent
             spacing: 0
 
-            // --- LEFT PANEL: Album Art ---
+    
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -145,7 +132,7 @@ Item {
                     width: Math.min(parent.width * 0.75, 480)
                     height: width
                     
-                    // ALIGNMENT: Anchor to right of this container (towards center)
+            
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.right: parent.right
                     anchors.rightMargin: 30 
@@ -181,7 +168,7 @@ Item {
                             }
                         }
 
-                        // Gloss Overlay
+                
                         Rectangle {
                             anchors.fill: parent
                             radius: 32
@@ -198,7 +185,7 @@ Item {
                 }
             }
 
-            // --- RIGHT PANEL: Dashboard ---
+            
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -206,7 +193,6 @@ Item {
 
                 ColumnLayout {
                     id: rightDashboard
-                    // ALIGNMENT: Anchor to left of this container (towards center)
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
                     anchors.leftMargin: 30 
@@ -215,12 +201,10 @@ Item {
                     spacing: 40
                     opacity: 0 
 
-                    // 1. Time & Date Section
+                
                     ColumnLayout {
                         Layout.alignment: Qt.AlignHCenter
                         spacing: 16
-
-                        // Horizontal Clock
                         RowLayout {
                             Layout.alignment: Qt.AlignHCenter
                             spacing: 8
@@ -229,8 +213,6 @@ Item {
                                 text: {
                                     let d = new Date();
                                     let h = d.getHours();
-                                    
-                                    // CHECK CONFIG FOR 24H FORMAT
                                     if (!Config.use24HourFormat) {
                                         h = h % 12 || 12;
                                     }
@@ -266,7 +248,6 @@ Item {
                             }
                         }
 
-                        // Date Capsule
                         Rectangle {
                             Layout.alignment: Qt.AlignHCenter
                             width: dateRow.implicitWidth + 40
@@ -303,8 +284,7 @@ Item {
                             }
                         }
                     }
-
-                    // 2. Media Player Card
+                
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 180
@@ -327,7 +307,7 @@ Item {
                             anchors.margins: 24
                             spacing: 0
 
-                            // Track Info
+                            
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 spacing: 4
@@ -354,10 +334,10 @@ Item {
                                 }
                             }
 
-                            // Spacer
+        
                             Item { Layout.fillHeight: true }
 
-                            // Progress Bar
+    
                             Item {
                                 Layout.fillWidth: true
                                 Layout.preferredHeight: 4
@@ -380,12 +360,12 @@ Item {
                                 }
                             }
 
-                            // Controls Row
+        
                             RowLayout {
                                 Layout.alignment: Qt.AlignHCenter
                                 spacing: 32
 
-                                // Prev
+            
                                 MouseArea {
                                     Layout.preferredWidth: 40; Layout.preferredHeight: 40
                                     cursorShape: Qt.PointingHandCursor
@@ -401,7 +381,7 @@ Item {
                                     }
                                 }
 
-                                // Play/Pause FAB
+
                                 MouseArea {
                                     Layout.preferredWidth: 56; Layout.preferredHeight: 56
                                     cursorShape: Qt.PointingHandCursor
@@ -425,7 +405,7 @@ Item {
                                     }
                                 }
 
-                                // Next
+
                                 MouseArea {
                                     Layout.preferredWidth: 40; Layout.preferredHeight: 40
                                     cursorShape: Qt.PointingHandCursor
@@ -448,16 +428,16 @@ Item {
         }
     }
 
-    // --- Footer: Password ---
+    
     Item {
         id: footer
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottomMargin: 60 // Lifted up to be less sticky
+        anchors.bottomMargin: 60 
         height: 120
         z: 20
-        opacity: 0 // Managed by animation
+        opacity: 0 
 
         PasswordCard {
             id: musicPwd
