@@ -23,7 +23,7 @@ Rectangle {
     Layout.alignment: Qt.AlignVCenter
     implicitWidth: innerLayout.implicitWidth + 8
     radius: height / 2
-    color: Qt.rgba(colors.fg.r, colors.fg.g, colors.fg.b, 0.1)
+    color: "transparent"
 
     HoverHandler {
         id: hoverHandler
@@ -41,8 +41,8 @@ Rectangle {
 
             Behavior on Layout.preferredWidth {
                 NumberAnimation {
-                    duration: 350
-                    easing.type: Easing.InOutQuad
+                    duration: 200
+                    easing.type: Easing.OutCubic
                 }
 
             }
@@ -76,8 +76,8 @@ Rectangle {
 
             Behavior on Layout.preferredWidth {
                 NumberAnimation {
-                    duration: 350
-                    easing.type: Easing.InOutQuad
+                    duration: 200
+                    easing.type: Easing.OutCubic
                 }
 
             }
@@ -90,7 +90,7 @@ Rectangle {
             Behavior on Layout.preferredWidth {
                 NumberAnimation {
                     duration: 200
-                    easing.type: Easing.OutQuad
+                    easing.type: Easing.OutCubic
                 }
 
             }

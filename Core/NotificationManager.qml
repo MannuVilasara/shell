@@ -187,9 +187,9 @@ Item {
                     }
                     if (safeId)
                         mappedActions.push({
-                            "id": safeId,
-                            "label": safeLabel || safeId
-                        });
+                        "id": safeId,
+                        "label": safeLabel || safeId
+                    });
 
                 }
             }

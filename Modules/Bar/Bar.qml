@@ -86,35 +86,47 @@ Rectangle {
             visible: SystemTray.items.values.length > 0
         }
 
-        RowLayout {
-            spacing: 4
+        Rectangle {
+            Layout.preferredHeight: 30
+            Layout.alignment: Qt.AlignVCenter
+            implicitWidth: statusLayout.implicitWidth + 16
+            radius: height / 2
+            color: Qt.rgba(barRoot.colors.fg.r, barRoot.colors.fg.g, barRoot.colors.fg.b, 0.1)
 
-            NetworkPill {
-                colors: barRoot.colors
-                fontFamily: barRoot.fontFamily
-                fontSize: barRoot.fontSize
-                globalState: barRoot.globalState
-                networkService: barRoot.networkService
-            }
+            RowLayout {
+                id: statusLayout
 
-            VolumePill {
-                colors: barRoot.colors
-                fontFamily: barRoot.fontFamily
-                fontSize: barRoot.fontSize
-                volumeLevel: barRoot.volumeLevel
-                volumeService: barRoot.volumeService
-            }
+                anchors.centerIn: parent
+                spacing: 0
 
-            BatteryPill {
-                colors: barRoot.colors
-                fontFamily: barRoot.fontFamily
-                fontSize: barRoot.fontSize
-            }
+                NetworkPill {
+                    colors: barRoot.colors
+                    fontFamily: barRoot.fontFamily
+                    fontSize: barRoot.fontSize
+                    globalState: barRoot.globalState
+                    networkService: barRoot.networkService
+                }
 
-            PowerButton {
-                colors: barRoot.colors
-                fontFamily: barRoot.fontFamily
-                fontSize: barRoot.fontSize
+                VolumePill {
+                    colors: barRoot.colors
+                    fontFamily: barRoot.fontFamily
+                    fontSize: barRoot.fontSize
+                    volumeLevel: barRoot.volumeLevel
+                    volumeService: barRoot.volumeService
+                }
+
+                BatteryPill {
+                    colors: barRoot.colors
+                    fontFamily: barRoot.fontFamily
+                    fontSize: barRoot.fontSize
+                }
+
+                PowerButton {
+                    colors: barRoot.colors
+                    fontFamily: barRoot.fontFamily
+                    fontSize: barRoot.fontSize
+                }
+
             }
 
         }
