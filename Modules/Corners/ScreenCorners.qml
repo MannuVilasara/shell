@@ -42,27 +42,27 @@ PanelWindow {
 
     RoundCorner {
         id: topLeft
+        property real verticalSnap: 0
 
         size: cornerSize
         anchors.left: parent.left
         state: topActive ? "active" : ""
         anchors.top: parent.top
-        anchors.topMargin: 0
-        // Behavior on anchors.topMargin { NumberAnimation { duration: 10; easing.type: Easing.OutQuad } }
+        anchors.topMargin: barHeight * verticalSnap
         corner: RoundCorner.CornerEnum.TopLeft
         color: context.colors.bg
 
         states: State {
             name: "active"
-            PropertyChanges { target: topLeft; anchors.leftMargin: 0; anchors.topMargin: barHeight }
+            PropertyChanges { target: topLeft; anchors.leftMargin: 0; verticalSnap: 1 }
         }
         transitions: [
             Transition {
                 from: ""; to: "active"
                 SequentialAnimation {
-                    PropertyAction { target: topLeft; property: "anchors.topMargin"; value: 0 }
+                    PropertyAction { target: topLeft; property: "verticalSnap"; value: 0 }
                     PauseAnimation { duration: 300 }
-                    PropertyAction { target: topLeft; property: "anchors.topMargin"; value: barHeight }
+                    PropertyAction { target: topLeft; property: "verticalSnap"; value: 1 }
                     PropertyAction { target: topLeft; property: "anchors.leftMargin"; value: -cornerSize }
                     NumberAnimation { target: topLeft; property: "anchors.leftMargin"; to: 0; duration: 200; easing.type: Easing.OutQuad }
                 }
@@ -73,27 +73,27 @@ PanelWindow {
 
     RoundCorner {
         id: topRight
+        property real verticalSnap: 0
 
         size: cornerSize
         anchors.right: parent.right
         state: topActive ? "active" : ""
         anchors.top: parent.top
-        anchors.topMargin: 0
-        // Behavior on anchors.topMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+        anchors.topMargin: barHeight * verticalSnap
         corner: RoundCorner.CornerEnum.TopRight
         color: context.colors.bg
 
         states: State {
             name: "active"
-            PropertyChanges { target: topRight; anchors.rightMargin: 0; anchors.topMargin: barHeight }
+            PropertyChanges { target: topRight; anchors.rightMargin: 0; verticalSnap: 1 }
         }
         transitions: [
             Transition {
                 from: ""; to: "active"
                 SequentialAnimation {
-                    PropertyAction { target: topRight; property: "anchors.topMargin"; value: 0 }
+                    PropertyAction { target: topRight; property: "verticalSnap"; value: 0 }
                     PauseAnimation { duration: 300 }
-                    PropertyAction { target: topRight; property: "anchors.topMargin"; value: barHeight }
+                    PropertyAction { target: topRight; property: "verticalSnap"; value: 1 }
                     PropertyAction { target: topRight; property: "anchors.rightMargin"; value: -cornerSize }
                     NumberAnimation { target: topRight; property: "anchors.rightMargin"; to: 0; duration: 200; easing.type: Easing.OutQuad }
                 }
@@ -104,27 +104,27 @@ PanelWindow {
 
     RoundCorner {
         id: bottomLeft
+        property real verticalSnap: 0
 
         size: cornerSize
         anchors.left: parent.left
         state: bottomActive ? "active" : ""
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0
-        // Behavior on anchors.bottomMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+        anchors.bottomMargin: barHeight * verticalSnap
         corner: RoundCorner.CornerEnum.BottomLeft
         color: context.colors.bg
 
         states: State {
             name: "active"
-            PropertyChanges { target: bottomLeft; anchors.leftMargin: 0; anchors.bottomMargin: barHeight }
+            PropertyChanges { target: bottomLeft; anchors.leftMargin: 0; verticalSnap: 1 }
         }
         transitions: [
             Transition {
                 from: ""; to: "active"
                 SequentialAnimation {
-                    PropertyAction { target: bottomLeft; property: "anchors.bottomMargin"; value: 0 }
+                    PropertyAction { target: bottomLeft; property: "verticalSnap"; value: 0 }
                     PauseAnimation { duration: 300 }
-                    PropertyAction { target: bottomLeft; property: "anchors.bottomMargin"; value: barHeight }
+                    PropertyAction { target: bottomLeft; property: "verticalSnap"; value: 1 }
                     PropertyAction { target: bottomLeft; property: "anchors.leftMargin"; value: -cornerSize }
                     NumberAnimation { target: bottomLeft; property: "anchors.leftMargin"; to: 0; duration: 200; easing.type: Easing.OutQuad }
                 }
@@ -135,27 +135,27 @@ PanelWindow {
 
     RoundCorner {
         id: bottomRight
+        property real verticalSnap: 0
 
         size: cornerSize
         anchors.right: parent.right
         state: bottomActive ? "active" : ""
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0
-        // Behavior on anchors.bottomMargin { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+        anchors.bottomMargin: barHeight * verticalSnap
         corner: RoundCorner.CornerEnum.BottomRight
         color: context.colors.bg
 
         states: State {
             name: "active"
-            PropertyChanges { target: bottomRight; anchors.rightMargin: 0; anchors.bottomMargin: barHeight }
+            PropertyChanges { target: bottomRight; anchors.rightMargin: 0; verticalSnap: 1 }
         }
         transitions: [
             Transition {
                 from: ""; to: "active"
                 SequentialAnimation {
-                    PropertyAction { target: bottomRight; property: "anchors.bottomMargin"; value: 0 }
+                    PropertyAction { target: bottomRight; property: "verticalSnap"; value: 0 }
                     PauseAnimation { duration: 300 }
-                    PropertyAction { target: bottomRight; property: "anchors.bottomMargin"; value: barHeight }
+                    PropertyAction { target: bottomRight; property: "verticalSnap"; value: 1 }
                     PropertyAction { target: bottomRight; property: "anchors.rightMargin"; value: -cornerSize }
                     NumberAnimation { target: bottomRight; property: "anchors.rightMargin"; to: 0; duration: 200; easing.type: Easing.OutQuad }
                 }
