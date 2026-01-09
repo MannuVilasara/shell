@@ -17,6 +17,12 @@ Item {
     property bool hasMedia: MprisService.title !== ""
     property bool isPlaying: MprisService.isPlaying
 
+    function formatTime(seconds) {
+        let m = Math.floor(seconds / 60);
+        let s = Math.floor(seconds % 60);
+        return m + ":" + (s < 10 ? "0" : "") + s;
+    }
+
     SequentialAnimation {
         id: entryAnim
 
@@ -440,7 +446,7 @@ Item {
 
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 180
+                        Layout.preferredHeight: contentCol.implicitHeight + 48
                         radius: 28
                         color: Qt.rgba(0, 0, 0, 0.4)
                         border.color: Qt.rgba(1, 1, 1, 0.08)
@@ -449,6 +455,8 @@ Item {
                         layer.enabled: true
 
                         ColumnLayout {
+                            id: contentCol
+
                             anchors.fill: parent
                             anchors.margins: 24
                             spacing: 0
@@ -482,103 +490,227 @@ Item {
                             }
 
                             Item {
-                                Layout.fillHeight: true
-                            }
-
-                            Item {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 4
-                                Layout.bottomMargin: 16
-                                visible: MprisService.length > 0
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    color: "#30FFFFFF"
-                                    radius: 2
-                                }
-
-                                Rectangle {
-                                    height: parent.height
-                                    width: (MprisService.position / Math.max(1, MprisService.length)) * parent.width
-                                    color: root.colors.accent
-                                    radius: 2
-                                    layer.enabled: true
-
-                                    layer.effect: Glow {
-                                        radius: 6
-                                        color: root.colors.accent
-                                    }
-
-                                }
-
+                                Layout.preferredHeight: 48
                             }
 
                             RowLayout {
+                                Layout.fillWidth: true
+                                Layout.maximumWidth: parent.width * 0.9
                                 Layout.alignment: Qt.AlignHCenter
-                                spacing: 32
+                                spacing: 12
 
-                                MouseArea {
-                                    Layout.preferredWidth: 40
-                                    Layout.preferredHeight: 40
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: MprisService.previous()
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "󰒮"
-                                        font.family: "Symbols Nerd Font"
-                                        font.pixelSize: 24
-                                        color: "#DDDDDD"
-                                        opacity: parent.pressed ? 0.7 : 1
-                                    }
-
+                                Text {
+                                    text: root.formatTime(MprisService.position)
+                                    color: "white"
+                                    font.pixelSize: 12
+                                    font.family: "JetBrainsMono Nerd Font"
                                 }
 
-                                MouseArea {
-                                    Layout.preferredWidth: 56
-                                    Layout.preferredHeight: 56
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: MprisService.playPause()
+                                Item {
+                                    id: progressContainer
+
+                                    property bool seeking: false
+                                    property real seekValue: 0
+                                    property bool seekingCooldown: false
+
+                                    function seekTo(mouseX) {
+                                        var pos = Math.max(0, Math.min(mouseX / width, 1));
+                                        seekValue = pos * MprisService.length;
+                                    }
+
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 24
 
                                     Rectangle {
-                                        anchors.fill: parent
-                                        radius: 28
-                                        color: root.colors.accent
-                                        scale: parent.pressed ? 0.95 : 1
+                                        anchors.centerIn: parent
+                                        width: parent.width
+                                        height: 6
+                                        radius: 3
+                                        color: "#40ffffff"
 
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: root.isPlaying ? "󰏤" : "󰐊"
-                                            font.family: "Symbols Nerd Font"
-                                            font.pixelSize: 28
-                                            color: root.colors.bg
-                                            anchors.horizontalCenterOffset: root.isPlaying ? 0 : 2
-                                        }
+                                        Rectangle {
+                                            width: {
+                                                var len = MprisService.length > 0 ? MprisService.length : 1;
+                                                var pos = (progressContainer.seeking || progressContainer.seekingCooldown) ? progressContainer.seekValue : MprisService.position;
+                                                var w = (pos / len) * parent.width;
+                                                return Math.max(0, Math.min(w, parent.width));
+                                            }
+                                            height: parent.height
+                                            radius: 3
+                                            color: root.colors.accent
 
-                                        Behavior on scale {
-                                            NumberAnimation {
-                                                duration: 100
+                                            Behavior on width {
+                                                NumberAnimation {
+                                                    duration: 200
+                                                    easing.type: Easing.OutCubic
+                                                }
+
                                             }
 
                                         }
 
                                     }
 
+                                    Rectangle {
+                                        id: progressHandle
+
+                                        x: {
+                                            var len = MprisService.length > 0 ? MprisService.length : 1;
+                                            var pos = (progressContainer.seeking || progressContainer.seekingCooldown) ? progressContainer.seekValue : MprisService.position;
+                                            var xPos = (pos / len) * (parent.width - width);
+                                            return Math.max(0, Math.min(xPos, parent.width - width));
+                                        }
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: 12
+                                        height: 24
+                                        radius: 6
+                                        color: root.colors.accent
+
+                                        Behavior on x {
+                                            NumberAnimation {
+                                                duration: 200
+                                                easing.type: Easing.OutCubic
+                                            }
+
+                                        }
+
+                                    }
+
+                                    Timer {
+                                        id: seekCooldownTimer
+
+                                        interval: 1000 // 1 second grace period for player to update
+                                        repeat: false
+                                        onTriggered: {
+                                            progressContainer.seekingCooldown = false;
+                                        }
+                                    }
+
+                                    Binding {
+                                        target: progressContainer
+                                        property: "seekValue"
+                                        value: MprisService.position
+                                        when: !progressContainer.seeking && !progressContainer.seekingCooldown
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onPressed: (mouse) => {
+                                            seekCooldownTimer.stop();
+                                            progressContainer.seekingCooldown = false;
+                                            progressContainer.seekTo(mouse.x);
+                                            progressContainer.seeking = true;
+                                        }
+                                        onPositionChanged: (mouse) => {
+                                            if (progressContainer.seeking)
+                                                progressContainer.seekTo(mouse.x);
+
+                                        }
+                                        onReleased: {
+                                            if (progressContainer.seeking) {
+                                                MprisService.setPosition(progressContainer.seekValue);
+                                                progressContainer.seeking = false;
+                                                progressContainer.seekingCooldown = true;
+                                                seekCooldownTimer.restart();
+                                            }
+                                        }
+                                    }
+
                                 }
 
-                                MouseArea {
-                                    Layout.preferredWidth: 40
-                                    Layout.preferredHeight: 40
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: MprisService.next()
+                                Text {
+                                    text: root.formatTime(MprisService.length)
+                                    color: "white"
+                                    font.pixelSize: 12
+                                    font.family: "JetBrainsMono Nerd Font"
+                                }
+
+                            }
+
+                            Item {
+                                Layout.preferredHeight: 12
+                            }
+
+                            RowLayout {
+                                Layout.alignment: Qt.AlignHCenter
+                                spacing: 32
+
+                                Item {
+                                    implicitWidth: 32
+                                    implicitHeight: 32
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "󰒭"
+                                        text: "󰒮" // Previous icon
                                         font.family: "Symbols Nerd Font"
+                                        color: "white"
                                         font.pixelSize: 24
-                                        color: "#DDDDDD"
-                                        opacity: parent.pressed ? 0.7 : 1
+                                        opacity: prevMouse.containsMouse ? 1 : 0.8
+                                    }
+
+                                    MouseArea {
+                                        id: prevMouse
+
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: MprisService.previous()
+                                    }
+
+                                }
+
+                                Rectangle {
+                                    implicitWidth: 64
+                                    implicitHeight: 64
+                                    radius: 20
+                                    color: root.colors.accent
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: root.isPlaying ? "󰏤" : "󰐊"
+                                        font.family: "Symbols Nerd Font"
+                                        color: root.colors.bg
+                                        font.pixelSize: 28
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: MprisService.playPause()
+                                        onPressed: parent.scale = 0.95
+                                        onReleased: parent.scale = 1
+                                    }
+
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: 100
+                                        }
+
+                                    }
+
+                                }
+
+                                Item {
+                                    implicitWidth: 32
+                                    implicitHeight: 32
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "󰒭" // Next icon
+                                        font.family: "Symbols Nerd Font"
+                                        color: "white"
+                                        font.pixelSize: 24
+                                        opacity: nextMouse.containsMouse ? 1 : 0.8
+                                    }
+
+                                    MouseArea {
+                                        id: nextMouse
+
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: MprisService.next()
                                     }
 
                                 }
