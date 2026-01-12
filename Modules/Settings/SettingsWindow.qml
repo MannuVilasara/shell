@@ -167,6 +167,12 @@ FloatingWindow {
                         Layout.fillHeight: true
                     }
 
+                   SidebarItem {
+                        label: "Update"
+                        icon: "󰛡"
+                        page: "Update"
+                    }
+
                     component SidebarItem: Rectangle {
                         property string label
                         property string icon
@@ -315,6 +321,8 @@ FloatingWindow {
                                 return "Pages/ServicesPage.qml";
                             case "About":
                                 return "Pages/AboutPage.qml";
+                            case "Update":
+                                return "Pages/UpdatePage.qml";
                             default:
                                 return "Pages/GeneralPage.qml";
                             }
