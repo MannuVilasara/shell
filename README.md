@@ -3,11 +3,11 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/last-commit/MannuVilasara/shell?style=for-the-badge&color=8ad7eb&logo=git&logoColor=D9E0EE&labelColor=1E202B" alt="Last Commit" />
+  <img src="https://img.shields.io/github/last-commit/MannuVilasara/xenon-shell?style=for-the-badge&color=8ad7eb&logo=git&logoColor=D9E0EE&labelColor=1E202B" alt="Last Commit" />
   &nbsp;
-  <img src="https://img.shields.io/github/stars/MannuVilasara/shell?style=for-the-badge&logo=andela&color=86dbd7&logoColor=D9E0EE&labelColor=1E202B" alt="Stars" />
+  <img src="https://img.shields.io/github/stars/MannuVilasara/xenon-shell?style=for-the-badge&logo=andela&color=86dbd7&logoColor=D9E0EE&labelColor=1E202B" alt="Stars" />
   &nbsp;
-  <img src="https://img.shields.io/github/repo-size/MannuVilasara/shell?color=86dbce&label=SIZE&logo=protondrive&style=for-the-badge&logoColor=D9E0EE&labelColor=1E202B" alt="Repo Size" />
+  <img src="https://img.shields.io/github/repo-size/MannuVilasara/xenon-shell?color=86dbce&label=SIZE&logo=protondrive&style=for-the-badge&logoColor=D9E0EE&labelColor=1E202B" alt="Repo Size" />
   &nbsp;
   <br />
 </p>
